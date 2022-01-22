@@ -20,19 +20,19 @@
 <JoinPopup bind:this={EJoinPopup} />
 
 <div class="h-full flex flex-col " class:blur-sm={waitingCode}>
-	<h2 class="text-white font-bold text-7xl text-center mt-16">Start a new game</h2>
+	<h2 class="text-white font-bold text-8xl text-center mt-16">Start a new game</h2>
 
 	<div
 		class="container mx-auto h-full mb-16 flex gap-8 flex-col sm:flex-row items-center justify-center sm:justify-around"
 	>
 		<button
-			class="bg-slate-800 text-white px-16 py-8 rounded-lg text-4xl transform duration-500 transition-transform hover:scale-125"
+			class="bg-slate-700 text-white px-16 py-8 rounded-lg text-5xl font-bold transform duration-500 transition-transform hover:scale-125"
 			on:click={host}
 		>
 			Host
 		</button>
 		<button
-			class="bg-slate-800 text-white px-16 py-8 rounded-lg text-4xl transform duration-500 transition-transform hover:scale-125"
+			class="bg-slate-700 text-white px-16 py-8 rounded-lg text-5xl font-bold transform duration-500 transition-transform hover:scale-125"
 			on:click={join}
 		>
 			Join
