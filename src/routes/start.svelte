@@ -4,13 +4,16 @@
 	import { randomCode } from '$lib/utils/gameCode';
 
 	function host() {
-		const code = randomCode(4);
+		const code = randomCode();
 		goto('/play/?code=' + code);
 	}
 	async function join() {
 		waitingCode = true;
 		const code = await EJoinPopup.getCode();
-		goto('/play/?code=' + code);
+		if (code) {
+			goto('/play/?code=' + code);
+		}
+		waitingCode = false;
 	}
 
 	let EJoinPopup: JoinPopup;
