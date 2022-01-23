@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { createGame } from '$lib/api/game/play';
 	import JoinPopup from '$lib/components/start/JoinPopup.svelte';
 	import { randomCode } from '$lib/utils/gameCode';
 
-	function host() {
-		const code = randomCode();
+	async function host() {
+		const code = await createGame();
 		goto('/play/?code=' + code);
 	}
 	async function join() {

@@ -16,7 +16,11 @@
 </script>
 
 <script lang="ts">
+	import { isInUse } from '$lib/api/game/code';
+
 	export let gameCode: string;
+
+	isInUse(gameCode);
 </script>
 
 <label for="gameCode">Your gameCode</label>
