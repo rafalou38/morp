@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { createGame } from '$lib/api/game/play';
+	import { currentGame, Game } from '$lib/api/game';
 	import JoinPopup from '$lib/components/start/JoinPopup.svelte';
 	import { randomCode } from '$lib/utils/gameCode';
 
 	async function host() {
-		const code = await createGame();
-		goto('/play/?code=' + code);
+		const code = randomCode();
+		goto('/connect?code=' + code + '&hosted=true');
 	}
 	async function join() {
 		waitingCode = true;
 		const code = await EJoinPopup.getCode();
 		if (code) {
-			goto('/play/?code=' + code);
+			goto('/connect/?code=' + code);
 		}
 		waitingCode = false;
 	}

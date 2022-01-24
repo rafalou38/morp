@@ -17,7 +17,8 @@
 					class="w-20 h-20 bg-slate-500 cursor-pointer hover:bg-slate-400"
 					class:active={cell}
 					on:click={() => {
-						parts[y][x] = !cell;
+						parts[y][x] = !parts[y][x];
+						code = parts.map((row) => row.map((c) => (c ? '1' : '0')).join('')).join('');
 					}}
 				/>
 			{/each}
