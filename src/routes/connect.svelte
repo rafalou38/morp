@@ -27,25 +27,40 @@
 	export let gameCode: string;
 	export let hosted: boolean;
 	let connected = false;
+	let error: string | null = null;
 
 	onMount(async () => {
 		await PeerLoaded;
 		currentGame.set(
-			new Game(gameCode, hosted, () => {
-				connected = true;
-				setTimeout(() => {
-					goto('/play');
-				}, 500);
-			})
+			new Game(
+				gameCode,
+				hosted,
+				() => {
+					connected = true;
+					setTimeout(() => {
+						goto('/play');
+					}, 500);
+				},
+				() => {
+					error = 'Connection failed';
+				}
+			)
 		);
 	});
 </script>
 
-{#if connected}
-	<h2>Connected !</h2>
-{:else if hosted}
-	<h2>Waiting for opponent...</h2>
-	<CodeBoard code={gameCode} />
-{:else}
-	<h2>Connecting to your opponent...</h2>
-{/if}
+<div class="h-full flex flex-col items-center justify-center gap-40">
+	{#if connected}
+		<h2 class="text-white text-8xl font-bold text-center">Connected !</h2>
+	{:else if error}
+		<h2 class="text-white text-8xl font-bold text-center">Failed to connect.</h2>
+	{:else if hosted}
+		<h2 class="text-white text-8xl font-bold text-center">Waiting for opponent...</h2>
+		<div class="">
+			<CodeBoard code={gameCode} noInteraction />
+			<p class="text-white text-center font-semibold mt-2">Your code.</p>
+		</div>
+	{:else}
+		<h2 class="text-white text-8xl font-bold text-center">Connecting to your opponent...</h2>
+	{/if}
+</div>
