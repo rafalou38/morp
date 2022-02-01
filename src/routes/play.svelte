@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 
 	import { currentGame } from '$lib/api/game';
+	import Chat from '$lib/components/Chat.svelte';
 
 	let message = '';
 	let messages = [];
@@ -38,15 +39,9 @@
 	}
 </script>
 
-Connected to: {$currentGame?.peer.id}
-<br />
-<form on:submit|preventDefault={send}>
-	<input type="text" bind:value={message} />
-	<button class="px-4 py-2 bg-blue-800 text-white font-bold" type="submit">send</button>
-</form>
-
-<ol class="text-white">
-	{#each messages as { author, content }}
-		<li><b>{author}</b>: {content}</li>
-	{/each}
-</ol>
+<div class="flex h-full">
+	<Chat />
+	<div class="grow">
+		Connected to: {$currentGame?.peer.id}
+	</div>
+</div>
