@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { currentGame, Game } from '$lib/api/game';
 	import JoinPopup from '$lib/components/start/JoinPopup.svelte';
 	import { randomCode } from '$lib/utils/gameCode';
 

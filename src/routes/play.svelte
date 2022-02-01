@@ -3,19 +3,19 @@
 
 	import { goto } from '$app/navigation';
 
-	import { currentGame } from '$lib/api/game';
+	import { currentConnection } from '$lib/api/connection';
 	import Chat from '$lib/components/Chat.svelte';
 
 	let message = '';
 	let messages = [];
-	if (!$currentGame && browser) {
+	if (!$currentConnection && browser) {
 		goto('start');
 	} else if (browser) {
-		$currentGame.on('message', (newMessage) => {
+		$currentConnection.on('message', (newMessage) => {
 			messages = [
 				...messages,
 				{
-					author: $currentGame.peer.id,
+					author: $currentConnection.peer.id,
 					content: newMessage.data
 				}
 			];
@@ -23,7 +23,7 @@
 	}
 
 	function send() {
-		$currentGame.send({
+		$currentConnection.send({
 			type: 'message',
 			data: message
 		});
@@ -42,6 +42,6 @@
 <div class="flex h-full">
 	<Chat />
 	<div class="grow">
-		Connected to: {$currentGame?.peer.id}
+		Connected to: {$currentConnection?.peer.id}
 	</div>
 </div>

@@ -18,7 +18,7 @@
 </script>
 
 <script lang="ts">
-	import { currentGame, Game } from '$lib/api/game';
+	import { currentConnection, Connection } from '$lib/api/connection';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { PeerLoaded } from '$lib/api/peerjs';
@@ -31,8 +31,8 @@
 
 	onMount(async () => {
 		await PeerLoaded;
-		currentGame.set(
-			new Game(
+		currentConnection.set(
+			new Connection(
 				gameCode,
 				hosted,
 				() => {

@@ -4,8 +4,8 @@ import { Peer } from './peerjs';
 import type PeerCls from 'peerjs';
 import { writable } from 'svelte/store';
 
-export const currentGame = writable<Game | null>(null);
-export class Game {
+export const currentConnection = writable<Connection | null>(null);
+export class Connection {
 	selfHosted: boolean;
 	peer: PeerCls;
 	code: string;
@@ -40,7 +40,6 @@ export class Game {
 			this.peer = new Peer(peerID);
 
 			this.peer.on('open', () => {
-				console.log(`[Game] Hosting game ${code}`);
 				console.log(`[P2P] Peer ID: ${this.peer.id}`);
 				this.connect();
 			});

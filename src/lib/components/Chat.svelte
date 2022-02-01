@@ -2,7 +2,7 @@
 	import Icon from '@iconify/svelte';
 
 	import { browser } from '$app/env';
-	import { currentGame } from '$lib/api/game';
+	import { currentConnection } from '$lib/api/connection';
 
 	type Message = {
 		from: 'You' | 'Opponent';
@@ -13,7 +13,7 @@
 	let open = true;
 
 	if (browser) {
-		$currentGame?.on('message', (newMessage) => {
+		$currentConnection?.on('message', (newMessage) => {
 			open = true;
 			messages = [
 				...messages,
@@ -26,7 +26,7 @@
 	}
 
 	function send() {
-		$currentGame.send({
+		$currentConnection.send({
 			type: 'message',
 			data: message
 		});

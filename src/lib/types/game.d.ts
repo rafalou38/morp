@@ -6,7 +6,7 @@
 
 declare type GameStatus = 'waiting' | 'playing' | 'finished';
 
-declare interface Game {
+declare interface Connection {
 	code: string;
 	players: unknown;
 	gameState: string;
