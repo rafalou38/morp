@@ -56,7 +56,7 @@
 			<Icon icon="heroicons-outline:chat" />
 		{/if}
 	</button>
-	<ol class="text-white grow overflow-y-auto bg-slate-800  p-2 gap-1">
+	<ol class="text-white grow overflow-y-auto bg-slate-700  p-2 gap-1">
 		{#each messages as { from, text }}
 			<li class="w-full break-words "><b>{from}</b>: {text}</li>
 		{/each}
@@ -66,7 +66,7 @@
 			type="text"
 			bind:value={message}
 			placeholder="Enter message"
-			class="grow border-none bg-slate-700 text-white"
+			class="grow border-none bg-slate-600 text-white"
 		/>
 		<button class="p-2 bg-slate-800 text-white w-10 grid place-items-center">
 			<Icon icon="heroicons-outline:paper-airplane" />
