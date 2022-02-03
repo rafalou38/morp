@@ -4,5 +4,7 @@
 
 <div class="flex h-full">
 	<Chat />
-	<slot />
+	<div class="flex flex-col grow h-full">
+		<slot />
+	</div>
 </div>

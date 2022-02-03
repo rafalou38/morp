@@ -68,7 +68,9 @@ export class Connection {
 
 		console.log('[P2P] Connecting to peer...');
 
-		const conn = this.peer.connect(P2PId('game', this.code));
+		const conn = this.peer.connect(P2PId('game', this.code), {
+			serialization: 'json'
+		});
 		conn.on('open', console.log);
 
 		this.handleConnection(conn);
