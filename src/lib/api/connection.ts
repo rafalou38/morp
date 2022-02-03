@@ -6,11 +6,11 @@ import { writable } from 'svelte/store';
 
 export const currentConnection = writable<Connection | null>(null);
 export class Connection {
-	selfHosted: boolean;
 	peer: PeerCls;
 	code: string;
 	connection: PeerCls.DataConnection | null = null;
 	connected: boolean;
+	private selfHosted: boolean;
 	private connectTimeout: NodeJS.Timeout | null = null;
 	private initInterval: NodeJS.Timeout | null = null;
 	private cb: (conn: PeerCls.DataConnection) => void;
@@ -131,5 +131,9 @@ export class Connection {
 	send(data: p2pPayload): void {
 		if (!this.connection) throw new Error('No connection');
 		this.connection.send(data);
+	}
+
+	public get isHost(): boolean {
+		return this.selfHosted;
 	}
 }

@@ -23,6 +23,7 @@
 	if (browser) {
 		$currentConnection?.on('charChosen', ({ data: opponentChar_ }) => {
 			opponent = opponentChar_ as string;
+			console.log("received opponent's character", opponentChar_);
 		});
 	}
 	function sendChar(char: string) {
@@ -35,7 +36,7 @@
 	}
 </script>
 
-<div class="px-8 py-16">
+<div class="px-8 py-8">
 	<div class="flex justify-around">
 		<div>
 			<p class="text-white text-2xl pb-2">Start by choosing a character.</p>
