@@ -13,7 +13,9 @@ const config = {
 
 	kit: {
 		adapter: adapter(),
-		prerender: {}
+		prerender: {
+			default: true
+		}
 	}
 };
 

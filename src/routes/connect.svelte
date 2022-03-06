@@ -2,6 +2,15 @@
 	import type { Load } from '@sveltejs/kit';
 
 	export const load: Load = async function ({ params, url }) {
+		if (!browser) {
+			return {
+				status: 200,
+				props: {
+					gameCode: '',
+					hosted: false
+				}
+			};
+		}
 		const gameCode = url.searchParams.get('code');
 		const hosted = !!url.searchParams.get('hosted');
 
@@ -23,6 +32,7 @@
 	import { onMount } from 'svelte';
 	import { PeerLoaded } from '$lib/api/peerjs';
 	import CodeBoard from '$lib/components/start/CodeBoard.svelte';
+	import { browser } from '$app/env';
 
 	export let gameCode: string;
 	export let hosted: boolean;
