@@ -24,5 +24,11 @@
 				<h3 class="text-center text-2xl font-semibold py-3 px-8  text-white">Tic-Tac-Toe</h3>
 			</div>
 		</a>
+		<a href="/play/click-race" class="block">
+			<div class="w-48 h-full rounded-md overflow-hidden bg-slate-700 cursor-pointer">
+				<img src="/images/game-thumbnails/click-race.png" alt="Click race" class="w-full" />
+				<h3 class="text-center text-2xl font-semibold py-3 px-8  text-white">Clicker race</h3>
+			</div>
+		</a>
 	</div>
 </div>
