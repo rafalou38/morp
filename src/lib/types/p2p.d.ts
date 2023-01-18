@@ -1,4 +1,4 @@
-declare interface p2pPayload {
+declare type p2pPayload = {
 	type: string;
-	data?: any;
-}
+	[key: string]: any;
+};
