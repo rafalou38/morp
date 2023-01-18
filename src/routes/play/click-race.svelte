@@ -1,5 +1,8 @@
 <script>
+	import { currentConnection } from '$lib/api/connection';
+
 	import Icon from '@iconify/svelte';
+	import { onMount } from 'svelte';
 
 	const START_DELAY = 5; //s
 
@@ -12,41 +15,48 @@
 	// Holds the value to show inside of the counter
 	let timeDisplay = '';
 
-	function btnClicked() {
+	function mainBtnClicked() {
 		if (gameState === 'starting') {
 			//  Countdown
 			// Don't do anything
 			return;
 		} else if (gameState === 'started') {
-			//  When button clicked and game is started
+			// Quand le jeu est d
 			// Register the click
 			selfProgress++;
-			console.log(selfProgress);
+			$currentConnection.send({
+				type: 'cr-click',
+				v: selfProgress
+			});
 			updateDisplay();
-
-			if (selfProgress >= 100 || opponentProgress >= 100) {
-				endGame();
-			}
 		} else if (gameState === 'ended') {
-			//  When button clicked and game is ended
-			// Start the game
-			startGame();
+			//  Quand le button est cliqué et que le jeu est terminé
+			// Debut du jeu a la date actuelle
+			startGame(new Date());
 		}
-		console.log(gameState);
 	}
 
-	function startGame(remote = false) {
+	function startGame(timestamp, remote = false) {
 		selfProgress = 0;
 		opponentProgress = 0;
 		gameState = 'starting';
+		updateDisplay();
 
-		// Handle the counter
-		const start = new Date();
+		const start = new Date(timestamp);
+
+		if (!remote) {
+			// Quand le jeu est démarré de ce coté, on envoie l'event start
+			$currentConnection.send({
+				type: 'cr-start',
+				time: start.getTime()
+			});
+		}
+
+		// Gestion du counter
 		const interval = setInterval(() => {
 			const msElapsed = new Date() - start;
 			const secElapsed = msElapsed / 1000;
 			if (secElapsed >= START_DELAY) {
-				console.log('here');
 				gameState = 'started';
 				clearInterval(interval);
 			} else {
@@ -55,13 +65,32 @@
 		}, 100);
 	}
 
-	function endGame(remote = false) {
-		gameState = 'ended';
-	}
-
 	function updateDisplay() {
 		document.getElementById('p1').style.marginLeft = selfProgress + '%';
+		document.getElementById('p2').style.marginLeft = opponentProgress + '%';
+
+		if (selfProgress >= 100 || opponentProgress >= 100) {
+			gameState = 'ended';
+		}
 	}
+
+	onMount(() => {
+		// Une fois que la page est prête, tou est chargé
+
+		$currentConnection?.on('cr-start', ({ time }) => {
+			// On démarre le jeu en mode remote
+			// console.debug(`[click-race] game started from remote at ${time}`);
+
+			startGame(time, true);
+		});
+		$currentConnection?.on('cr-click', ({ v }) => {
+			// On démarre le jeu en mode remote
+			// console.debug(`[click-race] receive opponent clicks ${v}`);
+
+			opponentProgress = v;
+			updateDisplay();
+		});
+	});
 </script>
 
 <div class="field">
@@ -72,21 +101,21 @@
 </div>
 
 {#if gameState == 'starting'}
-	<button id="main-btn" class="btn-starting" on:click={btnClicked}>
+	<button id="main-btn" class="btn-starting" on:click={mainBtnClicked}>
 		<div class="counter">{timeDisplay}</div>
 	</button>
 	<!-- 
 
  -->
 {:else if gameState == 'started'}
-	<button id="main-btn" class="btn-started" on:click={btnClicked}>
+	<button id="main-btn" class="btn-started" on:click={mainBtnClicked}>
 		<Icon class="text-9xl" icon="mdi:target" />
 	</button>
 	<!-- 
 
 	 -->
 {:else if gameState == 'ended'}
-	<button id="main-btn" class="btn-ended" on:click={btnClicked}>
+	<button id="main-btn" class="btn-ended" on:click={mainBtnClicked}>
 		<Icon class="text-9xl" icon="mdi:play" />
 	</button>
 

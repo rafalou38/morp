@@ -96,7 +96,7 @@
 				</div>
 			{/each}
 		</div>
-		<p class="font-bold text-5xl text-center text-white" on:click={() => console.log(game)}>
+		<p class="font-bold text-5xl text-center text-white">
 			{#if $winner?.character == myChar}
 				You won! 😀
 			{:else if $winner?.character == opponentChar}

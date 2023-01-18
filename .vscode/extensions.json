@@ -1,0 +1,9 @@
+{
+	"recommendations": [
+		"antfu.iconify",
+		"svelte.svelte-vscode",
+		"fivethree.vscode-svelte-snippets",
+		"pkief.material-icon-theme",
+		"bradlc.vscode-tailwindcss"
+	]
+}
