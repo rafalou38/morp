@@ -100,6 +100,9 @@
 	<div class="player" id="p2"><Icon icon="uil:car-sideview" /></div>
 </div>
 
+<!-- 
+	On affiche un bouton different en fonction de l'état du jeu.
+ -->
 {#if gameState == 'starting'}
 	<button id="main-btn" class="btn-starting" on:click={mainBtnClicked}>
 		<div class="counter">{timeDisplay}</div>
