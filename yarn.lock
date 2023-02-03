@@ -1894,6 +1894,11 @@ sprintf-js@~1.0.2:
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
   integrity sha1-BOaSb2YolTVPPdAVIDYzuFcpfiw=
 
+stage-js@^0.9.4:
+  version "0.9.4"
+  resolved "https://registry.yarnpkg.com/stage-js/-/stage-js-0.9.4.tgz#5d31eb8f33f1ca8d21c2043c6d21e47794b715f5"
+  integrity sha512-fNN6rkYD55T4NUxJE71hixXYS9DoyHVX5S8sQcq5yiozX1kqHP/wnByZwFfdAGNZjb5rROJ90zwb0EbM9U2Jqg==
+
 string-width@^4.2.3:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
