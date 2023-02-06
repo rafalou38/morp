@@ -1,13 +1,15 @@
 import type { Handle } from '@sveltejs/kit';
- 
-export const handle = async ({ event, resolve }) => {
-//   if (event.url.pathname.startsWith('/custom')) {
-//     return new Response('custom response');
-//   }
+const excluded_SSR = [
+	//'capture-race'
+]
+	.map((v) => `(${v})`)
+	.join('|');
+export const handle: Handle = async ({ event, resolve }) => {
+	if (event.url.pathname.match(excluded_SSR)) {
+		return resolve(event, {
+			ssr: false
+		});
+	}
 
-    console.log("hanfeee");
-    
- 
-  const response = await resolve(event);
-  return response;
-}
+	return resolve(event);
+};

@@ -93,43 +93,45 @@
 	});
 </script>
 
-<div class="field">
-	<div id="endLine" />
+<div class="p-8 flex flex-col grow gap-16">
+	<div class="field">
+		<div id="endLine" />
 
-	<div class="player" id="p1"><Icon icon="uil:car-sideview" /></div>
-	<div class="player" id="p2"><Icon icon="uil:car-sideview" /></div>
-</div>
-
-<!-- 
-	On affiche un bouton different en fonction de l'état du jeu.
- -->
-{#if gameState == 'starting'}
-	<button id="main-btn" class="btn-starting" on:click={mainBtnClicked}>
-		<div class="counter">{timeDisplay}</div>
-	</button>
-	<!-- 
-
- -->
-{:else if gameState == 'started'}
-	<button id="main-btn" class="btn-started" on:click={mainBtnClicked}>
-		<Icon class="text-9xl" icon="mdi:target" />
-	</button>
-	<!-- 
-
-	 -->
-{:else if gameState == 'ended'}
-	<button id="main-btn" class="btn-ended" on:click={mainBtnClicked}>
-		<Icon class="text-9xl" icon="mdi:play" />
-	</button>
-
-	<div class="result">
-		{#if opponentProgress > selfProgress}
-			You lost 💀
-		{:else if opponentProgress < selfProgress}
-			You won 😃
-		{/if}
+		<div class="player" id="p1"><Icon icon="uil:car-sideview" /></div>
+		<div class="player" id="p2"><Icon icon="uil:car-sideview" /></div>
 	</div>
-{/if}
+
+	<!--
+		On affiche un bouton different en fonction de l'état du jeu.
+	 -->
+	{#if gameState == 'starting'}
+		<button id="main-btn" class="btn-starting" on:click={mainBtnClicked}>
+			<div class="counter">{timeDisplay}</div>
+		</button>
+		<!--
+	
+	 -->
+	{:else if gameState == 'started'}
+		<button id="main-btn" class="btn-started" on:click={mainBtnClicked}>
+			<Icon class="text-9xl" icon="mdi:target" />
+		</button>
+		<!--
+	
+		 -->
+	{:else if gameState == 'ended'}
+		<button id="main-btn" class="btn-ended" on:click={mainBtnClicked}>
+			<Icon class="text-9xl" icon="mdi:play" />
+		</button>
+
+		<div class="result">
+			{#if opponentProgress > selfProgress}
+				You lost 💀
+			{:else if opponentProgress < selfProgress}
+				You won 😃
+			{/if}
+		</div>
+	{/if}
+</div>
 
 <style>
 	.field {
