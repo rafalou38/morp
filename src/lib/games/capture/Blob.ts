@@ -145,7 +145,7 @@ export class Blob {
 		} else {
 			this.troops--;
 			if (this.troops < 0) {
-				// this.troops *= -1;
+				this.troops *= -1;
 				this.owner = troop.owner;
 			}
 		}

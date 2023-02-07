@@ -19,7 +19,9 @@
 		check(container, 'container');
 		// debugger;
 		app = new Application({
-			resizeTo: container,
+			// resizeTo: container,
+			height: 960,
+			width: 960,
 			backgroundColor: '#fff',
 			antialias: true
 		});
@@ -132,7 +134,7 @@
 </script>
 
 <div id="background">
-	<div id="container" bind:this={container} />
+	<div id="pixi-capture-container" bind:this={container} />
 </div>
 
 <style>
@@ -142,10 +144,13 @@
 		place-items: center;
 		height: 100%;
 	}
-	#container {
+	#pixi-capture-container {
 		/* width: 100%;
 		height: 100%; */
 		aspect-ratio: 1/1;
 		width: 100vmin;
+	}
+	:global(#pixi-capture-container canvas) {
+		width: 100%;
 	}
 </style>
