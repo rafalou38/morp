@@ -17,8 +17,8 @@
 		// debugger;
 		app = new Application({
 			resizeTo: container,
-			backgroundColor: '#fff'
-			// antialias: true
+			backgroundColor: '#fff',
+			antialias: true
 		});
 		container.appendChild(app.view as HTMLCanvasElement);
 
@@ -29,7 +29,7 @@
 		const blobs: Blob[] = [];
 
 		blobs.push(
-			new Blob(w / 10, h / 10, 'self'), //
+			new Blob(w / 10, h / 10, 'other'), //
 			new Blob(w * (9 / 10), h * (9 / 10), 'self') //
 		);
 

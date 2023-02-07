@@ -12,6 +12,10 @@ export function map(
 	const mapped: number = ((current - in_min) * (out_max - out_min)) / (in_max - in_min) + out_min;
 	return clamp(mapped, out_min, out_max);
 }
+export const sq = (n) => Math.pow(n, 2);
+export function CustomEase(x: number) {
+	return 0.9 * x * (2.1 - x);
+}
 
 export class Vector2 {
 	x: number;
