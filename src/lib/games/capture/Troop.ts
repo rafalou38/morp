@@ -5,11 +5,12 @@ import {
 	ParticleContainer,
 	RenderTexture,
 	Sprite,
-	type Container
+	type Container,
 } from 'pixi.js';
-import type { Blob } from './Blob';
+import { Blob } from './Blob';
 import { GRAY, GREEN, RED, WHITE, type Owner } from './utils';
 
+let canvasFactor = 1;
 export class Troop {
 	static container: ParticleContainer;
 	static grSelf: RenderTexture;
@@ -29,6 +30,8 @@ export class Troop {
 		gr.beginFill(RED);
 		gr.drawCircle(0, 0, 4);
 		this.grOther = app.renderer.generateTexture(gr);
+
+		canvasFactor = (1 / 10) * app.view.width;
 	}
 	static Update(dt: number) {
 		for (const troop of this.troops) {
@@ -49,6 +52,8 @@ export class Troop {
 	target: Blob;
 
 	constructor(pos: Vector2, target: Blob, owner: Owner) {
+		console.log(pos);
+
 		this.pos = pos;
 		this.owner = owner;
 		this.target = target;
@@ -62,12 +67,12 @@ export class Troop {
 
 	update(dt: number) {
 		const between = this.pos.to(this.target.pos);
-		const movement = between.scale(1 / between.norm()).scale(dt / 7);
+		const movement = between.scale(1 / between.norm()).scale(dt / 700);
 		this.pos.add(movement);
 
-		if (this.target.pos.to(this.pos).norm() < 10) {
+		if (this.target.pos.to(this.pos).norm() < Blob.baseRadius) {
 			// Calculate impact
-
+			// console.log(this.pos);
 			this.target.receive(this);
 
 			this.destroy();
@@ -79,7 +84,7 @@ export class Troop {
 	}
 
 	draw() {
-		this.sprite.position.set(this.pos.x, this.pos.y);
+		this.sprite.position.set(this.pos.x * canvasFactor, this.pos.y * canvasFactor);
 	}
 
 	destroy() {

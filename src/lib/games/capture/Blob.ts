@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { CustomEase, map, Vector2 } from '$lib/utils/math';
-import { mousPos } from '$lib/utils/pixi';
+import { mousPos, planToCanvas } from '$lib/utils/pixi';
 import { Graphics, Container, Text, DisplayObject, Circle, Sprite, Application } from 'pixi.js';
 import { DashLine } from 'pixi-dashed-line';
 import { GRAY, GREEN, RED, WHITE, type Owner } from './utils';
 import { Waiter } from '$lib/utils/time';
 import { Troop } from './Troop';
 
+let canvasFactor = 1;
 export class Blob {
 	/**
 	 * ##############################
@@ -14,7 +15,8 @@ export class Blob {
 	 * ##############################
 	 */
 
-	static baseRadius: number;
+	static canvasSize: number;
+	static baseRadius = 0.3;
 	static maxMultiplier = 1.5;
 	static topCapacity = 100;
 	static selecting = false;
@@ -23,14 +25,16 @@ export class Blob {
 	static currentMoves: { from: Blob[]; to: Blob }[] = [];
 
 	static Configure(app: Application) {
-		Blob.baseRadius = Math.min((app.view.width * 0.8) / 20, 25);
+		// this.baseRadius = Math.min((app.view.width * 0.8) / 20, 25);
 		this.app = app;
+		this.canvasSize = app.view.width;
+		canvasFactor = (1 / 10) * this.canvasSize;
 	}
 
 	static ValidateMove(target: Blob) {
 		Blob.currentMoves.push({
 			to: target,
-			from: Blob.blobs.filter((b) => b.selected)
+			from: Blob.blobs.filter((b) => b.selected),
 		});
 	}
 
@@ -63,8 +67,8 @@ export class Blob {
 							for (let tIndex = 0; tIndex < max; tIndex++) {
 								new Troop(
 									new Vector2(
-										giver.pos.x + Math.random() * 20 - 10,
-										giver.pos.y + Math.random() * 20 - 10
+										giver.pos.x + Math.random() * Blob.baseRadius - Blob.baseRadius,
+										giver.pos.y + Math.random() * Blob.baseRadius - Blob.baseRadius
 									),
 									target,
 									giver.owner
@@ -74,8 +78,8 @@ export class Blob {
 							while (giver.troops > 0) {
 								new Troop(
 									new Vector2(
-										giver.pos.x + Math.random() * 20 - 10,
-										giver.pos.y + Math.random() * 20 - 10
+										giver.pos.x + Math.random() * Blob.baseRadius - Blob.baseRadius,
+										giver.pos.y + Math.random() * Blob.baseRadius - Blob.baseRadius
 									),
 									target,
 									giver.owner
@@ -151,11 +155,11 @@ export class Blob {
 		}
 	}
 
-	mirror(w: number, h: number) {
+	mirror() {
 		const topLeft = new Vector2(0, 0);
-		const topRight = new Vector2(w, 0);
-		const bottomLeft = new Vector2(0, h);
-		const bottomRight = new Vector2(w, h);
+		const topRight = new Vector2(10, 0);
+		const bottomLeft = new Vector2(0, 10);
+		const bottomRight = new Vector2(10, 10);
 
 		const m1 = this.pos.sym(topLeft, bottomRight);
 		const m2 = this.pos.sym(topRight, bottomLeft);
@@ -164,7 +168,7 @@ export class Blob {
 		return [
 			new Blob(m1.x, m1.y, this.owner, this.troops),
 			new Blob(m2.x, m2.y, this.owner, this.troops),
-			new Blob(m3.x, m3.y, this.owner, this.troops)
+			new Blob(m3.x, m3.y, this.owner, this.troops),
 		];
 	}
 	overlaps(other: Blob) {
@@ -197,8 +201,8 @@ export class Blob {
 	}
 	private build() {
 		this.container = new Container();
-		this.container.x = this.pos.x;
-		this.container.y = this.pos.y;
+		this.container.x = this.pos.x * canvasFactor;
+		this.container.y = this.pos.y * canvasFactor;
 
 		this.graphic = new Graphics();
 
@@ -214,7 +218,7 @@ export class Blob {
 		this.label = new Text(this.troops.toString(), {
 			fontFamily: 'Arial',
 			fill: ['#fff'],
-			fontSize: Blob.baseRadius * SHARP_TEXT_FACTOR
+			fontSize: Blob.baseRadius * canvasFactor * SHARP_TEXT_FACTOR,
 			// stroke: '#fff',
 			// strokeThickness: 2
 		});
@@ -229,34 +233,34 @@ export class Blob {
 		const scale = CustomEase(
 			1 - (Blob.topCapacity - Math.min(this.troops, Blob.topCapacity)) / Blob.topCapacity
 		);
-		let radius = Blob.baseRadius * ((1.5 - 1) * scale + 1);
+		let radiusPX = Blob.baseRadius * ((1.5 - 1) * scale + 1) * canvasFactor;
 		this.graphic.clear();
 
 		if (this.owner == 'clear') {
 			if (this.hovered) {
 				this.graphic.beginFill(GRAY);
-				this.graphic.drawCircle(0, 0, radius);
+				this.graphic.drawCircle(0, 0, radiusPX);
 				this.label.style.fill = WHITE;
 			} else {
 				const dash = new DashLine(this.graphic, {
 					dash: [10, 5],
 					width: 2,
-					color: GRAY
+					color: GRAY,
 				});
 				this.label.style.fill = GRAY;
-				dash.drawCircle(0, 0, radius);
+				dash.drawCircle(0, 0, radiusPX);
 			}
 		} else {
 			if (this.owner == 'self') {
-				if (this.hovered) radius *= 1.1;
+				if (this.hovered) radiusPX *= 1.1;
 				this.graphic.beginFill(GREEN);
 			} else if (this.owner == 'other') this.graphic.beginFill(RED);
 
 			this.label.style.fill = WHITE;
-			this.graphic.drawCircle(0, 0, radius);
+			this.graphic.drawCircle(0, 0, radiusPX);
 		}
 
-		this.graphic.hitArea = new Circle(0, 0, radius);
+		this.graphic.hitArea = new Circle(0, 0, radiusPX);
 
 		// TEXT
 		this.label.text = this.troops.toString();
@@ -271,7 +275,7 @@ export class Blob {
 			const line = new DashLine(this.graphic, {
 				dash: [10, 2],
 				width: 2,
-				color: GREEN
+				color: GREEN,
 			});
 			this.graphic.beginFill(GREEN);
 			this.graphic.drawCircle(tx, ty, 4);
