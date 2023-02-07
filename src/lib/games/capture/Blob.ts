@@ -6,6 +6,12 @@ import { DashLine } from 'pixi-dashed-line';
 
 type Owner = 'self' | 'other' | 'clear';
 export class Blob {
+	/**
+	 * ##############################
+	 * ##########   Game   ##########
+	 * ##############################
+	 */
+
 	static baseRadius: number;
 	static maxMultiplier = 1.5;
 	static topCapacity = 100;
@@ -29,13 +35,17 @@ export class Blob {
 	static GameTick() {
 		for (let i = Blob.currentMoves.length - 1; i >= 0; i--) {
 			const move = Blob.currentMoves[i];
-			for (let i = move.from.length - 1; i >= 0; i--) {
-				const giver = move.from[i];
+			for (let j = move.from.length - 1; j >= 0; j--) {
+				const giver = move.from[j];
 
 				if (giver.troops > 0) {
 					giver.troops--;
 					if (move.to.owner == 'self') {
 						move.to.troops++;
+						if (move.to.troops >= Blob.topCapacity) {
+							this.currentMoves.splice(i, 1);
+							break;
+						}
 					} else {
 						if (move.to.troops == 0) {
 							move.to.owner = 'self';
@@ -45,16 +55,17 @@ export class Blob {
 						}
 					}
 				} else {
-					move.from.splice(i, 1);
-				}
-
-				if (move.to.troops >= Blob.topCapacity) {
-					this.currentMoves.splice(i, 1);
-					break;
+					move.from.splice(j, 1);
 				}
 			}
 		}
 	}
+
+	/**
+	 * ##############################
+	 * ########## INSTANCE ##########
+	 * ##############################
+	 */
 
 	// SETTINGS
 	pos: Vector2;
@@ -119,6 +130,9 @@ export class Blob {
 	}
 	private handleMouseLeave() {
 		this.hovered = false;
+		if (Blob.selecting && this.owner == 'self') {
+			this.selected = true;
+		}
 	}
 	private handleMouseDown() {
 		if (this.owner == 'self') {
