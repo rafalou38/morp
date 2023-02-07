@@ -52,8 +52,6 @@ export class Troop {
 	target: Blob;
 
 	constructor(pos: Vector2, target: Blob, owner: Owner) {
-		console.log(pos);
-
 		this.pos = pos;
 		this.owner = owner;
 		this.target = target;
@@ -72,15 +70,10 @@ export class Troop {
 
 		if (this.target.pos.to(this.pos).norm() < Blob.baseRadius) {
 			// Calculate impact
-			// console.log(this.pos);
 			this.target.receive(this);
 
 			this.destroy();
 		}
-
-		// console.log(this.pos);
-
-		// this.pos.x +=
 	}
 
 	draw() {

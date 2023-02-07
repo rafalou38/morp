@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { CustomEase, map, Vector2 } from '$lib/utils/math';
+import { CustomEase, map, randRange, Vector2 } from '$lib/utils/math';
 import { mousPos, planToCanvas } from '$lib/utils/pixi';
 import { Graphics, Container, Text, DisplayObject, Circle, Sprite, Application } from 'pixi.js';
 import { DashLine } from 'pixi-dashed-line';
@@ -119,7 +119,7 @@ export class Blob {
 		if (troops) {
 			this.troops = troops;
 		} else if (owner == 'clear') {
-			this.troops = Math.round(Math.random() * 10);
+			this.troops = Math.round(randRange(10, 20));
 		} else {
 			this.troops = 10;
 		}
@@ -142,8 +142,6 @@ export class Blob {
 	}
 
 	receive(troop: Troop) {
-		console.log('receive');
-
 		if (this.owner == troop.owner) {
 			this.troops++;
 		} else {
@@ -229,6 +227,9 @@ export class Blob {
 		this.reBuild();
 	}
 	reBuild(mouse?: Vector2) {
+		this.container.x = this.pos.x * canvasFactor;
+		this.container.y = this.pos.y * canvasFactor;
+
 		// SHAPE
 		const scale = CustomEase(
 			1 - (Blob.topCapacity - Math.min(this.troops, Blob.topCapacity)) / Blob.topCapacity
@@ -263,6 +264,7 @@ export class Blob {
 		this.graphic.hitArea = new Circle(0, 0, radiusPX);
 
 		// TEXT
+		this.label.style.fontSize = Blob.baseRadius * canvasFactor * 2;
 		this.label.text = this.troops.toString();
 		this.label.x = -this.label.width / 2;
 		this.label.y = -this.label.height / 2;

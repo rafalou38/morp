@@ -27,25 +27,8 @@
 		});
 		container.appendChild(app.view as HTMLCanvasElement);
 
-		const w = app.view.width;
-		const h = app.view.height;
-
-		if (1) {
-			const grid = new Graphics();
-			grid.lineStyle({ width: 1, color: 0xcccccc });
-			const canvasFactor = (1 / 10) * w;
-			for (let col = 0; col < 10; col++) {
-				grid.moveTo(col * canvasFactor, 0);
-				grid.lineTo(col * canvasFactor, h);
-			}
-			for (let roz = 0; roz < 10; roz++) {
-				grid.moveTo(0, roz * canvasFactor);
-				grid.lineTo(w, roz * canvasFactor);
-			}
-			app.stage.addChild(grid);
-		}
-
-		for (let row = 0; row < 10; row++) {}
+		let w = app.view.width;
+		let h = app.view.height;
 
 		const fpsCounter = new Text('60', {
 			fontFamily: 'Arial',
@@ -53,12 +36,37 @@
 			fontSize: 10,
 		});
 		fpsCounter.position.set(0, 0);
-
 		app.stage.addChild(fpsCounter);
 
-		Troop.Setup(app);
-		Blob.Configure(app);
+		const grid = new Graphics();
 
+		function setup() {
+			check(app);
+
+			w = app.view.width;
+			h = app.view.height;
+
+			if (0) {
+				grid.clear();
+				grid.lineStyle({ width: 1, color: 0xcccccc });
+				const canvasFactor = (1 / 10) * w;
+				for (let col = 0; col < 10; col++) {
+					grid.moveTo(col * canvasFactor, 0);
+					grid.lineTo(col * canvasFactor, h);
+				}
+				for (let roz = 0; roz < 10; roz++) {
+					grid.moveTo(0, roz * canvasFactor);
+					grid.lineTo(w, roz * canvasFactor);
+				}
+				app.stage.addChild(grid);
+			}
+
+			Troop.Setup(app);
+			Blob.Configure(app);
+		}
+		setup();
+
+		app.renderer.on('resize', setup);
 		/**
 		 * #######################
 		 * ### BLOB GENERATION ###
@@ -69,7 +77,7 @@
 			new Blob(1, 1, 'other'), //
 			new Blob(9, 9, 'self') //
 		);
-		for (let i = 0; i < 4; i++) {
+		for (let i = 0; i < 6; i++) {
 			const blob = new Blob(
 				map(Math.random(), 0, 1, 1, 9),
 				map(Math.random(), 0, 1, 1, 9),
@@ -81,8 +89,6 @@
 				for (const existing of [...blobs, ...newBlobs]) {
 					for (const newBlob of newBlobs) {
 						if (existing != newBlob && existing.overlaps(newBlob)) {
-							// console.log('overlap:', existing.troops, newBlob.troops);
-
 							i--;
 							overlapped = true;
 							break check;
@@ -93,7 +99,6 @@
 
 			if (!overlapped) blobs.push(...newBlobs);
 		}
-		console.log(blobs.map((b) => b.pos));
 		for (const blob of blobs) {
 			blob.register(app.stage);
 		}

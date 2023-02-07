@@ -17,6 +17,10 @@ export function CustomEase(x: number) {
 	return 0.9 * x * (2.1 - x);
 }
 
+export function randRange(a: number, b: number) {
+	return Math.random() * (b - a) + a;
+}
+
 export class Vector2 {
 	x: number;
 	y: number;
