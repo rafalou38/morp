@@ -3,8 +3,10 @@ import { CustomEase, map, Vector2 } from '$lib/utils/math';
 import { mousPos } from '$lib/utils/pixi';
 import { Graphics, Container, Text, DisplayObject, Circle, Sprite, Application } from 'pixi.js';
 import { DashLine } from 'pixi-dashed-line';
+import { GRAY, GREEN, RED, WHITE, type Owner } from './utils';
+import { Waiter } from '$lib/utils/time';
+import { Troop } from './Troop';
 
-type Owner = 'self' | 'other' | 'clear';
 export class Blob {
 	/**
 	 * ##############################
@@ -32,30 +34,58 @@ export class Blob {
 		});
 	}
 
+	static growTimer = Waiter(1000);
+	static moveTimer = Waiter(100);
 	static GameTick() {
-		for (let i = Blob.currentMoves.length - 1; i >= 0; i--) {
-			const move = Blob.currentMoves[i];
-			for (let j = move.from.length - 1; j >= 0; j--) {
-				const giver = move.from[j];
+		if (this.growTimer()) {
+			for (const blob of Blob.blobs) {
+				if (blob.owner != 'clear') blob.grow();
+			}
+		}
 
-				if (giver.troops > 0) {
-					giver.troops--;
-					if (move.to.owner == 'self') {
-						move.to.troops++;
-						if (move.to.troops >= Blob.topCapacity) {
-							this.currentMoves.splice(i, 1);
-							break;
+		if (this.moveTimer()) {
+			// For each move
+			for (let i = Blob.currentMoves.length - 1; i >= 0; i--) {
+				const move = Blob.currentMoves[i];
+				const target = move.to;
+
+				// For each giver
+				for (let j = move.from.length - 1; j >= 0; j--) {
+					const giver = move.from[j];
+					if (giver == target) continue;
+
+					if (giver.troops > 0) {
+						// Spawn a troop
+						const max = 4;
+
+						if (giver.troops >= max) {
+							giver.troops -= max;
+							for (let tIndex = 0; tIndex < max; tIndex++) {
+								new Troop(
+									new Vector2(
+										giver.pos.x + Math.random() * 20 - 10,
+										giver.pos.y + Math.random() * 20 - 10
+									),
+									target,
+									giver.owner
+								);
+							}
+						} else {
+							while (giver.troops > 0) {
+								new Troop(
+									new Vector2(
+										giver.pos.x + Math.random() * 20 - 10,
+										giver.pos.y + Math.random() * 20 - 10
+									),
+									target,
+									giver.owner
+								);
+								giver.troops--;
+							}
 						}
 					} else {
-						if (move.to.troops == 0) {
-							move.to.owner = 'self';
-							move.to.troops++;
-						} else {
-							move.to.troops--;
-						}
+						move.from.splice(j, 1);
 					}
-				} else {
-					move.from.splice(j, 1);
 				}
 			}
 		}
@@ -102,8 +132,25 @@ export class Blob {
 	grow() {
 		if (this.troops < Blob.topCapacity) {
 			this.troops++;
+		} else if (this.troops > Blob.topCapacity) {
+			this.troops--;
 		}
 	}
+
+	receive(troop: Troop) {
+		console.log('receive');
+
+		if (this.owner == troop.owner) {
+			this.troops++;
+		} else {
+			this.troops--;
+			if (this.troops < 0) {
+				// this.troops *= -1;
+				this.owner = troop.owner;
+			}
+		}
+	}
+
 	mirror(w: number, h: number) {
 		const topLeft = new Vector2(0, 0);
 		const topRight = new Vector2(w, 0);
@@ -178,11 +225,6 @@ export class Blob {
 		this.reBuild();
 	}
 	reBuild(mouse?: Vector2) {
-		const RED = 0xe74c3c;
-		const GREEN = 0x2ecc71;
-		const GRAY = 0xbdc3c7;
-		const WHITE = 0xffffff;
-
 		// SHAPE
 		const scale = CustomEase(
 			1 - (Blob.topCapacity - Math.min(this.troops, Blob.topCapacity)) / Blob.topCapacity

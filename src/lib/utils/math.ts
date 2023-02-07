@@ -28,6 +28,13 @@ export class Vector2 {
 	dot(v: Vector2): number {
 		return this.x * v.x + this.y * v.y;
 	}
+	scale(k: number): Vector2 {
+		return new Vector2(this.x * k, this.y * k);
+	}
+	add(v: Vector2) {
+		this.x += v.x;
+		this.y += v.y;
+	}
 
 	norm() {
 		return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
@@ -53,5 +60,8 @@ export class Vector2 {
 		const P = new Vector2(A.x + axis.x * (ap / axis.norm()), A.y + axis.y * (ap / axis.norm()));
 
 		return new Vector2(P.x - P.to(this).x, P.y - P.to(this).y);
+	}
+	copy() {
+		return new Vector2(this.x, this.y);
 	}
 }

@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { Blob } from '$lib/games/capture/Blob';
+	import { Troop } from '$lib/games/capture/Troop';
 
 	// import { Blob } from '$lib/games/capture/Blob';
 	import type { N } from '$lib/types/utils';
 	import { check } from '$lib/utils/assert';
 	import { map, Vector2 } from '$lib/utils/math';
 	import { mousPos } from '$lib/utils/pixi';
+	import { Waiter } from '$lib/utils/time';
 	import { Application, Text, Graphics, Container, DisplayObject } from 'pixi.js';
 	import { onDestroy, onMount } from 'svelte';
 
@@ -25,15 +27,27 @@
 
 		const w = app.view.width;
 		const h = app.view.height;
+
+		const fpsCounter = new Text('60', {
+			fontFamily: 'Arial',
+			fill: ['#aaa'],
+			fontSize: 10
+		});
+		fpsCounter.position.set(0, 0);
+
+		app.stage.addChild(fpsCounter);
+
+		Troop.Setup(app);
 		Blob.Configure(app);
-
+		/**#######################
+		 * ### BLOB GENERATION ###
+		 * #######################
+		 */
 		const blobs: Blob[] = [];
-
 		blobs.push(
 			new Blob(w / 10, h / 10, 'other'), //
 			new Blob(w * (9 / 10), h * (9 / 10), 'self') //
 		);
-
 		for (let i = 0; i < 4; i++) {
 			const blob = new Blob(
 				map(Math.random(), 0, 1, 1 / 10, 9 / 10) * w,
@@ -57,24 +71,31 @@
 			}
 			if (!overlapped) blobs.push(...newBlobs);
 		}
-
 		for (const blob of blobs) {
 			blob.register(app.stage);
 		}
 
-		setInterval(() => {
-			for (const blob of blobs) {
-				if (blob.owner != 'clear') blob.grow();
-			}
-		}, 1000);
+		/**#######################
+		 * ###    GAME LOOP    ###
+		 * #######################
+		 */
+		let last = Date.now();
+		let monotonic = 0;
+		let fpsWaiter = Waiter(1000);
 
-		setInterval(() => {
-			Blob.GameTick();
-		}, 50);
-
+		// new Troop(blobs[1], blobs[0], 'self');
 		function draw() {
 			if (!app) return;
 
+			// Timing
+			const dt = Date.now() - last;
+			monotonic += dt;
+			if (monotonic % 1000) last = Date.now();
+			if (fpsWaiter()) {
+				fpsCounter.text = Math.round(1000 / dt) + ' - ' + dt;
+			}
+
+			// Mouse position fetching
 			let pos: N<Vector2> = null;
 			try {
 				pos = mousPos(app);
@@ -82,6 +103,8 @@
 				console.warn('Mouse lost');
 			}
 
+			// Blob loop
+			Blob.GameTick();
 			for (const blob of blobs) {
 				if (pos) {
 					blob.reBuild(pos);
@@ -89,6 +112,11 @@
 					blob.reBuild();
 				}
 			}
+
+			// Troops
+
+			Troop.Update(dt);
+			Troop.Draw();
 
 			requestAnimationFrame(draw);
 		}
