@@ -4,7 +4,8 @@
 	// import { Blob } from '$lib/games/capture/Blob';
 	import type { N } from '$lib/types/utils';
 	import { check } from '$lib/utils/assert';
-	import { map } from '$lib/utils/math';
+	import { map, Vector2 } from '$lib/utils/math';
+	import { mousPos } from '$lib/utils/pixi';
 	import { Application, Text, Graphics, Container, DisplayObject } from 'pixi.js';
 	import { onDestroy, onMount } from 'svelte';
 
@@ -24,7 +25,7 @@
 
 		const w = app.view.width;
 		const h = app.view.height;
-		Blob.Configure(w);
+		Blob.Configure(app);
 
 		const blobs: Blob[] = [];
 
@@ -66,6 +67,32 @@
 				if (blob.owner != 'clear') blob.grow();
 			}
 		}, 1000);
+
+		setInterval(() => {
+			Blob.GameTick();
+		}, 50);
+
+		function draw() {
+			if (!app) return;
+
+			let pos: N<Vector2> = null;
+			try {
+				pos = mousPos(app);
+			} catch (error) {
+				console.warn('Mouse lost');
+			}
+
+			for (const blob of blobs) {
+				if (pos) {
+					blob.reBuild(pos);
+				} else {
+					blob.reBuild();
+				}
+			}
+
+			requestAnimationFrame(draw);
+		}
+		requestAnimationFrame(draw);
 	});
 
 	onDestroy(() => {
