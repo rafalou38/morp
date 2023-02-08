@@ -24,9 +24,6 @@ export class Troop {
 	static Setup(app: Application) {
 		this.app = app;
 
-		// Clear residual troops
-		this.troops.forEach((t) => t.destroy());
-
 		this.selfContainer = this.selfContainer || new ParticleContainer(100_000);
 		this.otherContainer = this.otherContainer || new ParticleContainer(100_000);
 

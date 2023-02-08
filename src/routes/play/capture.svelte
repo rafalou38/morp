@@ -40,7 +40,7 @@
 		let blobs: Blob[] = [];
 		let gameEnded = false;
 		let gameStarted = false;
-		let opponentReady = false;
+		let loading = false;
 
 		let lastDraw = Date.now();
 		let monotonic = 0;
@@ -63,7 +63,7 @@
 			var bgText = new Text('Waiting opponent', {
 				fill: 0x0,
 				stroke: 0xffffff,
-				strokeThickness: w,
+				strokeThickness: w * 2,
 				fontWeight: '900',
 				fontSize: ((1 / 10) * w) / window.devicePixelRatio,
 			});
@@ -92,6 +92,8 @@
 			w = app.view.width;
 			h = app.view.height;
 			canvasFactor = ((1 / 10) * w) / window.devicePixelRatio;
+			looseBg.width = w;
+			looseBg.height = h;
 
 			fitText();
 
@@ -100,24 +102,28 @@
 		}
 
 		function start() {
+			if (!loading) return;
 			check(app);
 			check($currentConnection);
 
-			console.log('start');
+			console.trace('start');
 
 			Troop.Setup(app);
 			Blob.Setup(app);
 
 			loadScale();
-			blobs = [];
 			if (looseContainer.parent) looseContainer.parent.removeChild(looseContainer);
 			looseBg.position.y = h;
 			if ($currentConnection.isHost) {
+				Troop.troops.forEach((t) => t.destroy());
+				Blob.blobs.forEach((b) => b.destroy());
+				blobs = [];
 				generateBlobs();
 				gameStarted = true;
 			}
 
 			gameEnded = false;
+			loading = false;
 		}
 		async function counter(start: number) {
 			check(app);
@@ -253,6 +259,7 @@
 					if (self == 0 && !Troop.troops.find((t) => t.owner == 'self')) {
 						gameEnded = true;
 						bgText.text = 'YOU LOST';
+						console.log(Troop.troops);
 					} else if (other == 0 && !Troop.troops.find((t) => t.owner == 'other')) {
 						gameEnded = true;
 						bgText.text = 'YOU WON';
@@ -273,27 +280,38 @@
 		 */
 		{
 			looseBg.onclick = async () => {
+				if (loading) return;
 				gameStarted = false;
 				const startTime = Date.now();
 				$currentConnection?.send({ type: 'capture.reset', start: startTime });
+				loading = true;
 				await counter(startTime);
 
 				start();
 			};
 			$currentConnection.on('capture.ready', async () => {
+				if (loading) return;
 				const startTime = Date.now();
 				$currentConnection?.send({ type: 'capture.reset', start: startTime });
-
+				loading = true;
 				await counter(startTime);
 				start();
 			});
 			$currentConnection.on('capture.reset', async (d) => {
+				if (loading) return;
 				gameStarted = false;
+				loading = true;
 				await counter(d.start);
 				start();
 			});
 			$currentConnection.on('capture.init', ({ blobData }) => {
 				check(app);
+
+				if (loading) start();
+
+				Troop.troops.forEach((t) => t.destroy());
+				Blob.blobs.forEach((b) => b.destroy());
+				blobs = [];
 				for (const blob of blobData) {
 					const basePos = new Vector2(blob.x, blob.y);
 					const nPos = basePos.sym(new Vector2(0, 10), new Vector2(10, 0));
@@ -301,6 +319,8 @@
 						new Blob(nPos.x, nPos.y, blob.owner, blob.troops, blob.id).register(app.stage)
 					);
 				}
+
+				loading = false;
 				gameStarted = true;
 			});
 			$currentConnection.on('capture.troopSpawn', ({ troopData: { x, y, targetID, originID } }) => {

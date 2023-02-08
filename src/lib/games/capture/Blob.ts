@@ -27,8 +27,6 @@ export class Blob {
 	static currentMoves: { from: Blob[]; to: Blob }[] = [];
 
 	static Setup(app: Application) {
-		// Clear residual blobs
-		this.blobs.forEach((b) => b.destroy());
 		this.app = app;
 	}
 
