@@ -36,73 +36,122 @@
 
 		let w = app.view.width;
 		let h = app.view.height;
+		let canvasFactor = ((1 / 10) * w) / window.devicePixelRatio;
+		let blobs: Blob[] = [];
+		let gameEnded = false;
+		let gameStarted = false;
+		let opponentReady = false;
+
+		let lastDraw = Date.now();
+		let monotonic = 0;
 
 		// FPS
-		const fpsCounter = new Text('60', {
-			fontFamily: 'Arial',
-			fill: ['#aaa'],
-			fontSize: 10,
-		});
-		fpsCounter.position.set(0, 0);
-		app.stage.addChild(fpsCounter);
+		{
+			var fpsCounter = new Text('60', {
+				fontFamily: 'Arial',
+				fill: ['#aaa'],
+				fontSize: 10,
+			});
+			fpsCounter.position.set(0, 0);
+			app.stage.addChild(fpsCounter);
+		}
 
 		// LOOSE SCREEN
-		const looseBg = new Graphics();
-		const looseContainer = new Container();
-		const bgText = new Text('YOU WON', {
-			fill: 0x0,
-			stroke: 0xffffff,
-			strokeThickness: w,
-			fontWeight: '900',
-			fontSize: ((1 / 10) * w) / window.devicePixelRatio,
-		});
+		{
+			var looseContainer = new Container();
+			var looseBg = new Graphics();
+			var bgText = new Text('Waiting opponent', {
+				fill: 0x0,
+				stroke: 0xffffff,
+				strokeThickness: w,
+				fontWeight: '900',
+				fontSize: ((1 / 10) * w) / window.devicePixelRatio,
+			});
+			fitText();
+			looseBg.beginFill(0x000000);
+			looseBg.drawRect(0, 0, w, h);
+			looseBg.position.y = h;
+			looseContainer.addChild(looseBg);
+			looseBg.interactive = false;
+			looseBg.cursor = 'none';
+			looseContainer.mask = bgText;
 
-		looseBg.beginFill(0x000000);
-		looseBg.drawRect(0, 0, w, h);
-		looseBg.position.y = h;
-		// setInterval(() => (bg.position.y += 1), 10);
-		looseContainer.addChild(looseBg);
+			looseBg.position.y = 0;
+			app.stage.addChild(looseContainer);
+		}
 
-		bgText.position.x = w / 2 - bgText.width / 2;
-		bgText.position.y = h / 2 - bgText.height / 2;
-
-		looseContainer.mask = bgText;
-
-		const grid = new Graphics();
-		function setup() {
+		app.renderer.on('resize', loadScale);
+		function fitText() {
+			bgText.position.x = w / 2 / window.devicePixelRatio - bgText.width / 2;
+			bgText.position.y = h / 2 / window.devicePixelRatio - bgText.height / 2;
+			bgText.style.fontSize = canvasFactor;
+		}
+		function loadScale() {
 			check(app);
+
 			w = app.view.width;
 			h = app.view.height;
-			const canvasFactor = ((1 / 10) * w) / window.devicePixelRatio;
-			bgText.style.fontSize = canvasFactor;
+			canvasFactor = ((1 / 10) * w) / window.devicePixelRatio;
 
-			if (GRID) {
-				grid.clear();
-				grid.lineStyle({ width: 1, color: 0xcccccc });
+			fitText();
 
-				for (let col = 0; col < 10; col++) {
-					grid.moveTo(col * canvasFactor, 0);
-					grid.lineTo(col * canvasFactor, h);
-				}
-				for (let roz = 0; roz < 10; roz++) {
-					grid.moveTo(0, roz * canvasFactor);
-					grid.lineTo(w, roz * canvasFactor);
-				}
-				app.stage.addChild(grid);
-			}
+			Blob.loadScale(app);
+			Troop.loadScale(app);
+		}
+
+		function start() {
+			check(app);
+			check($currentConnection);
+
+			console.log('start');
 
 			Troop.Setup(app);
-			Blob.Configure(app);
+			Blob.Setup(app);
+
+			loadScale();
+			blobs = [];
+			if (looseContainer.parent) looseContainer.parent.removeChild(looseContainer);
+			looseBg.position.y = h;
+			if ($currentConnection.isHost) {
+				generateBlobs();
+				gameStarted = true;
+			}
+
+			gameEnded = false;
 		}
-		setup();
-		app.renderer.on('resize', setup);
+		async function counter(start: number) {
+			check(app);
+			looseBg.interactive = false;
+			looseBg.cursor = 'none';
+			if (looseContainer.parent) looseContainer.parent.removeChild(looseContainer);
+			looseBg.position.y = 0;
+			app.stage.addChild(looseContainer);
+			return new Promise<void>((res) => {
+				function timer() {
+					bgText.text = 5 - Math.floor((Date.now() - start) / 1000);
+					fitText();
+					if ((Date.now() - start) / 1000 >= 5) {
+						if (looseContainer.parent) looseContainer.parent.removeChild(looseContainer);
+						res();
+					} else {
+						setTimeout(timer, 100);
+					}
+				}
+				timer();
+			});
+		}
 		/**
-		 * #######################
-		 * ### BLOB GENERATION ###
-		 * #######################
+		 * ## Generate Blobs
+		 * Creates and initialises `self` & `other` blobs
+		 *
+		 * > Fils `blobs` array with the clear blobs
+		 *
+		 * Sends `capture.init` with the list of blobs.
 		 */
-		const blobs: Blob[] = [];
-		if ($currentConnection.isHost) {
+		function generateBlobs() {
+			check($currentConnection);
+			check(app);
+
 			blobs.push(
 				new Blob(1, 1, 'other'), //
 				new Blob(9, 9, 'self')
@@ -148,27 +197,17 @@
 				})),
 			});
 		}
-
-		/**#######################
-		 * ###    GAME LOOP    ###
-		 * #######################
-		 */
-		let gameEnded = false;
-		let gameStarted = $currentConnection.isHost;
-		let won = false;
-		let last = Date.now();
-		let monotonic = 0;
 		let fpsWaiter = Waiter(1000);
 		let checkWinner = Waiter(500);
-
+		requestAnimationFrame(draw);
 		function draw() {
 			if (!app) return;
 			requestAnimationFrame(draw);
 
 			// Timing
-			const dt = Date.now() - last;
+			const dt = Date.now() - lastDraw;
 			monotonic += dt;
-			if (monotonic % 1000) last = Date.now();
+			if (monotonic % 1000) lastDraw = Date.now();
 			if (fpsWaiter()) {
 				fpsCounter.text = Math.round(1000 / dt) + ' - ' + dt;
 			}
@@ -213,21 +252,79 @@
 
 					if (self == 0 && !Troop.troops.find((t) => t.owner == 'self')) {
 						gameEnded = true;
-						won = false;
 						bgText.text = 'YOU LOST';
 					} else if (other == 0 && !Troop.troops.find((t) => t.owner == 'other')) {
 						gameEnded = true;
-						won = true;
 						bgText.text = 'YOU WON';
 					}
 
 					if (gameEnded) {
 						app.stage.addChild(looseContainer);
-						setTimeout(() => goto('/play/capture', 1000 * 10));
+						looseBg.interactive = true;
+						looseBg.cursor = 'pointer';
+						fitText();
 					}
 				}
 		}
-		requestAnimationFrame(draw);
+		/**
+		 * ##############
+		 * ### EVENTS ###
+		 * ##############
+		 */
+		{
+			looseBg.onclick = async () => {
+				gameStarted = false;
+				const startTime = Date.now();
+				$currentConnection?.send({ type: 'capture.reset', start: startTime });
+				await counter(startTime);
+
+				start();
+			};
+			$currentConnection.on('capture.ready', async () => {
+				const startTime = Date.now();
+				$currentConnection?.send({ type: 'capture.reset', start: startTime });
+
+				await counter(startTime);
+				start();
+			});
+			$currentConnection.on('capture.reset', async (d) => {
+				gameStarted = false;
+				await counter(d.start);
+				start();
+			});
+			$currentConnection.on('capture.init', ({ blobData }) => {
+				check(app);
+				for (const blob of blobData) {
+					const basePos = new Vector2(blob.x, blob.y);
+					const nPos = basePos.sym(new Vector2(0, 10), new Vector2(10, 0));
+					blobs.push(
+						new Blob(nPos.x, nPos.y, blob.owner, blob.troops, blob.id).register(app.stage)
+					);
+				}
+				gameStarted = true;
+			});
+			$currentConnection.on('capture.troopSpawn', ({ troopData: { x, y, targetID, originID } }) => {
+				check(app);
+
+				const target = Blob.blobs.find((b) => b.id == targetID);
+				check(target);
+				const origin = Blob.blobs.find((b) => b.id == originID);
+				check(origin);
+
+				new Troop(origin, target, true);
+			});
+			$currentConnection.on('capture.blobUpdate', ({ id, owner, troop }) => {
+				check(app);
+
+				const blob: Blob | undefined = Blob.blobs.find((b) => b.id == id);
+				check(blob);
+
+				blob.owner = owner;
+				blob.troops = troop;
+			});
+
+			$currentConnection.send({ type: 'capture.ready' });
+		}
 
 		if (KBD)
 			container.addEventListener('keydown', ({ key }) => {
@@ -245,50 +342,13 @@
 					}
 				}
 			});
-
-		/**#######################
-		 * ###    CONNECTION   ###
-		 * #######################
-		 */
-		console.log($currentConnection);
-
-		$currentConnection.on('capture.init', ({ blobData }) => {
-			check(app);
-			gameStarted = true;
-			for (const blob of blobData) {
-				const basePos = new Vector2(blob.x, blob.y);
-				const nPos = basePos.sym(new Vector2(0, 10), new Vector2(10, 0));
-				blobs.push(new Blob(nPos.x, nPos.y, blob.owner, blob.troops, blob.id).register(app.stage));
-			}
-		});
-		$currentConnection.on('capture.troopSpawn', ({ troopData: { x, y, targetID, originID } }) => {
-			check(app);
-
-			const target = Blob.blobs.find((b) => b.id == targetID);
-			check(target);
-			const origin = Blob.blobs.find((b) => b.id == originID);
-			check(origin);
-
-			// console.log(origin.owner);
-
-			new Troop(origin, target, true);
-		});
-
-		$currentConnection.on('capture.blobUpdate', ({ id, owner, troop }) => {
-			check(app);
-
-			const blob: Blob | undefined = Blob.blobs.find((b) => b.id == id);
-			check(blob);
-
-			blob.owner = owner;
-			blob.troops = troop;
-		});
 	});
 
 	onDestroy(() => {
 		if (app) {
 			app.destroy();
 			app = null;
+			$currentConnection?.clear('capture');
 		}
 	});
 </script>

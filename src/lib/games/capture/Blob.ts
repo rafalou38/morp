@@ -26,9 +26,13 @@ export class Blob {
 	static app: Application;
 	static currentMoves: { from: Blob[]; to: Blob }[] = [];
 
-	static Configure(app: Application) {
-		// this.baseRadius = Math.min((app.view.width * 0.8) / 20, 25);
+	static Setup(app: Application) {
+		// Clear residual blobs
+		this.blobs.forEach((b) => b.destroy());
 		this.app = app;
+	}
+
+	static loadScale(app: Application) {
 		this.canvasSize = app.view.width;
 		canvasFactor = ((1 / 10) * this.canvasSize) / window.devicePixelRatio;
 	}
@@ -300,6 +304,7 @@ export class Blob {
 	}
 
 	destroy() {
+		this.container?.parent?.removeChild(this.container);
 		Blob.blobs = Blob.blobs.filter((t) => t != this);
 	}
 }

@@ -19,29 +19,38 @@ export class Troop {
 	static otherContainer: ParticleContainer;
 	static selfContainer: ParticleContainer;
 	static troops: Troop[] = [];
-	static Setup(app: Application) {
-		canvasFactor = ((1 / 10) * app.view.width) / window.devicePixelRatio;
+	static app: Application;
 
-		this.selfContainer = new ParticleContainer(100_000);
-		this.otherContainer = new ParticleContainer(100_000);
+	static Setup(app: Application) {
+		this.app = app;
+
+		// Clear residual troops
+		this.troops.forEach((t) => t.destroy());
+
+		this.selfContainer = this.selfContainer || new ParticleContainer(100_000);
+		this.otherContainer = this.otherContainer || new ParticleContainer(100_000);
+
 		app.stage.addChild(this.selfContainer);
 		app.stage.addChild(this.otherContainer);
-		let gr = new Graphics();
+	}
+
+	static loadScale(app: Application) {
+		canvasFactor = ((1 / 10) * app.view.width) / window.devicePixelRatio;
+		const gr = new Graphics();
 
 		gr.clear();
 		gr.beginFill(get(currentConnection)?.isHost ? GREEN : RED);
 		gr.drawCircle(0, 0, 0.05 * canvasFactor);
 		gr.endFill();
-		grSelf = app.renderer.generateTexture(gr);
-
-		gr = new Graphics();
+		grSelf = this.app.renderer.generateTexture(gr);
 
 		gr.clear();
 		gr.beginFill(get(currentConnection)?.isHost ? RED : GREEN);
 		gr.drawCircle(0, 0, 0.05 * canvasFactor);
 		gr.endFill();
-		grOther = app.renderer.generateTexture(gr);
+		grOther = this.app.renderer.generateTexture(gr);
 	}
+
 	static Update(dt: number) {
 		for (const troop of this.troops) {
 			troop.update(dt);
