@@ -67,14 +67,15 @@ export class Blob {
 						if (giver.troops >= max) {
 							giver.troops -= max;
 							for (let tIndex = 0; tIndex < max; tIndex++) {
-								new Troop(new Vector2(giver.pos.x, giver.pos.y), target, giver.owner);
+								new Troop(giver, target);
 							}
 						} else {
 							while (giver.troops > 0) {
-								new Troop(new Vector2(giver.pos.x, giver.pos.y), target, giver.owner);
+								new Troop(giver, target);
 								giver.troops--;
 							}
 						}
+						giver.sendUpdate();
 					} else {
 						move.from.splice(j, 1);
 					}
@@ -90,6 +91,7 @@ export class Blob {
 	 */
 
 	// SETTINGS
+	id: number;
 	pos: Vector2;
 	troops: number;
 	owner: 'self' | 'other' | 'clear';
@@ -100,7 +102,8 @@ export class Blob {
 	hovered = false;
 	private label: Text;
 	private graphic: Graphics;
-	constructor(x: number, y: number, owner: Owner, troops?: number) {
+	constructor(x: number, y: number, owner: Owner, troops?: number, id?: number) {
+		this.id = id || Math.random();
 		this.pos = new Vector2(x, y);
 		this.owner = owner;
 
@@ -153,8 +156,7 @@ export class Blob {
 	sendUpdate() {
 		get(currentConnection)?.send({
 			type: 'capture.blobUpdate',
-			x: this.pos.x,
-			y: this.pos.y,
+			id: this.id,
 			owner: ownerMap.get(this.owner),
 			troop: this.troops,
 		});
