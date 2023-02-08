@@ -10,7 +10,7 @@
 	};
 	let messages: Message[] = [];
 	let message = '';
-	let open = true;
+	let open = false;
 
 	if (browser) {
 		$currentConnection?.on('message', (newMessage) => {

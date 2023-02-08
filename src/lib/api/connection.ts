@@ -15,7 +15,8 @@ export class Connection {
 	private initInterval: NodeJS.Timeout | null = null;
 	private cb: (conn: PeerCls.DataConnection) => void;
 	private errCb: () => void;
-	private listeners: { [key: string]: (data: p2pPayload) => void } = {};
+	// private listeners: { [key: string]: (data: p2pPayload) => void } = {};
+	private listeners: Map<string, (data: p2pPayload) => void> = new Map();
 
 	static async isValid(code: string): Promise<boolean> {
 		// const isValid = await tempCon.disconnect();
@@ -69,7 +70,7 @@ export class Connection {
 		console.log('[P2P] Connecting to peer...');
 
 		const conn = this.peer.connect(P2PId('game', this.code), {
-			serialization: 'json'
+			serialization: 'json',
 		});
 		conn.on('open', console.log);
 
@@ -100,7 +101,7 @@ export class Connection {
 		console.log('[P2P] Disconnected from peer');
 	}
 	private handleData(data: p2pPayload): void {
-		console.log('[P2P] Received data', data);
+		// console.log('[P2P] Received data', data);
 		if (data.type === 'initialization') {
 			if (this.connected) return;
 
@@ -117,7 +118,7 @@ export class Connection {
 			return;
 		}
 
-		const listener = this.listeners[data.type];
+		const listener = this.listeners.get(data.type);
 
 		if (listener) {
 			listener(data);
@@ -126,7 +127,12 @@ export class Connection {
 		}
 	}
 	on(event: string, cb: (data: p2pPayload) => void): void {
-		this.listeners[event] = cb;
+		this.listeners.set(event, cb);
+	}
+	clear(obsolete: string): void {
+		this.listeners = new Map(
+			[...this.listeners.entries()].filter(([key, cb]) => !key.includes(obsolete))
+		);
 	}
 	send(data: p2pPayload): void {
 		if (!this.connection) throw new Error('No connection');

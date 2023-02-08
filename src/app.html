@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="description" content="" />
-		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Dosis:wght@200;300;400;500;600;700;800&display=swap"
-			rel="stylesheet"
-		/>
+<head>
+	<meta charset="utf-8" />
+	<meta name="description" content="" />
+	<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-		%sveltekit.head%
-	</head>
-	<body class="bg-slate-600">
-		<div id="svelte">%sveltekit.body%</div>
-		<script>
-			var parcelRequire; // global variable ¯\_(ツ)_/¯ needed for peerjs
-		</script>
-	</body>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Dosis:wght@200;300;400;500;600;700;800&display=swap"
+		rel="stylesheet" />
+
+	%sveltekit.head%
+</head>
+
+<body class="bg-slate-600">
+	<div id="svelte">%sveltekit.body%</div>
+	<script>
+		// global variable ¯\_(ツ)_/¯ needed by libraries
+		var parcelRequire;
+		const DEBUG = false;
+	</script>
+</body>
+
 </html>
