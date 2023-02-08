@@ -8,7 +8,7 @@
 	import { map, Vector2 } from '$lib/utils/math';
 	import { mousPos } from '$lib/utils/pixi';
 	import { Waiter } from '$lib/utils/time';
-	import { Application, Text, Graphics, Container, DisplayObject } from 'pixi.js';
+	import { Application, Text, Graphics, Container, DisplayObject, settings } from 'pixi.js';
 	import { onDestroy, onMount } from 'svelte';
 
 	// settings.RESOLUTION = window.devicePixelRatio || 1;
@@ -20,9 +20,11 @@
 		// debugger;
 		app = new Application({
 			resizeTo: container,
+			resolution: window.devicePixelRatio,
+			autoDensity: true,
 			// height: 960,
 			// width: 960,
-			// antialias: true,
+			antialias: true,
 			backgroundColor: '#fff',
 		});
 		container.appendChild(app.view as HTMLCanvasElement);
@@ -43,13 +45,19 @@
 		function setup() {
 			check(app);
 
+			// settings.RESOLUTION = window.devicePixelRatio;
+
 			w = app.view.width;
 			h = app.view.height;
 
 			if (0) {
 				grid.clear();
 				grid.lineStyle({ width: 1, color: 0xcccccc });
-				const canvasFactor = (1 / 10) * w;
+				// debugger;
+				const canvasFactor = ((1 / 10) * w) / window.devicePixelRatio;
+				// const canvasFactor = 110.4;
+				console.log(canvasFactor);
+
 				for (let col = 0; col < 10; col++) {
 					grid.moveTo(col * canvasFactor, 0);
 					grid.lineTo(col * canvasFactor, h);

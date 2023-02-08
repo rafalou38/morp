@@ -28,7 +28,7 @@ export class Blob {
 		// this.baseRadius = Math.min((app.view.width * 0.8) / 20, 25);
 		this.app = app;
 		this.canvasSize = app.view.width;
-		canvasFactor = (1 / 10) * this.canvasSize;
+		canvasFactor = ((1 / 10) * this.canvasSize) / window.devicePixelRatio;
 	}
 
 	static ValidateMove(target: Blob) {

@@ -31,7 +31,7 @@ export class Troop {
 		gr.drawCircle(0, 0, 4);
 		this.grOther = app.renderer.generateTexture(gr);
 
-		canvasFactor = (1 / 10) * app.view.width;
+		canvasFactor = ((1 / 10) * app.view.width) / window.devicePixelRatio;
 	}
 	static Update(dt: number) {
 		for (const troop of this.troops) {
