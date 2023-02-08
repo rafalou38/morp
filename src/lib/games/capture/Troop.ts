@@ -1,3 +1,4 @@
+import { currentConnection } from '$lib/api/connection';
 import type { Vector2 } from '$lib/utils/math';
 import {
 	Application,
@@ -7,8 +8,9 @@ import {
 	Sprite,
 	type Container,
 } from 'pixi.js';
+import { get } from 'svelte/store';
 import { Blob } from './Blob';
-import { GRAY, GREEN, RED, WHITE, type Owner } from './utils';
+import { GRAY, GREEN, ownerMap, RED, WHITE, type Owner } from './utils';
 
 let canvasFactor = 1;
 export class Troop {
@@ -50,9 +52,14 @@ export class Troop {
 	owner: Owner;
 
 	target: Blob;
+	remote: boolean;
 
-	constructor(pos: Vector2, target: Blob, owner: Owner) {
-		this.pos = pos;
+	constructor(pos: Vector2, target: Blob, owner: Owner, remote = false) {
+		this.remote = remote;
+		this.pos = pos.copy();
+		this.pos.x += Math.random() * Blob.baseRadius - Blob.baseRadius;
+		this.pos.y += Math.random() * Blob.baseRadius - Blob.baseRadius;
+
 		this.owner = owner;
 		this.target = target;
 
@@ -61,6 +68,17 @@ export class Troop {
 
 		Troop.container.addChild(this.sprite);
 		Troop.troops.push(this);
+
+		if (!remote)
+			get(currentConnection)?.send({
+				type: 'capture.troopSpawn',
+				troopData: {
+					x: pos.x,
+					y: pos.y,
+					target: target.pos,
+					origin: pos,
+				},
+			});
 	}
 
 	update(dt: number) {
@@ -70,8 +88,7 @@ export class Troop {
 
 		if (this.target.pos.to(this.pos).norm() < Blob.baseRadius) {
 			// Calculate impact
-			this.target.receive(this);
-
+			if (!this.remote) this.target.receive(this);
 			this.destroy();
 		}
 	}

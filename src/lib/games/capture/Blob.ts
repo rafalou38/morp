@@ -3,9 +3,11 @@ import { CustomEase, map, randRange, Vector2 } from '$lib/utils/math';
 import { mousPos, planToCanvas } from '$lib/utils/pixi';
 import { Graphics, Container, Text, DisplayObject, Circle, Sprite, Application } from 'pixi.js';
 import { DashLine } from 'pixi-dashed-line';
-import { GRAY, GREEN, RED, WHITE, type Owner } from './utils';
+import { GRAY, GREEN, ownerMap, RED, WHITE, type Owner } from './utils';
 import { Waiter } from '$lib/utils/time';
 import { Troop } from './Troop';
+import { get } from 'svelte/store';
+import { currentConnection } from '$lib/api/connection';
 
 let canvasFactor = 1;
 export class Blob {
@@ -65,25 +67,11 @@ export class Blob {
 						if (giver.troops >= max) {
 							giver.troops -= max;
 							for (let tIndex = 0; tIndex < max; tIndex++) {
-								new Troop(
-									new Vector2(
-										giver.pos.x + Math.random() * Blob.baseRadius - Blob.baseRadius,
-										giver.pos.y + Math.random() * Blob.baseRadius - Blob.baseRadius
-									),
-									target,
-									giver.owner
-								);
+								new Troop(new Vector2(giver.pos.x, giver.pos.y), target, giver.owner);
 							}
 						} else {
 							while (giver.troops > 0) {
-								new Troop(
-									new Vector2(
-										giver.pos.x + Math.random() * Blob.baseRadius - Blob.baseRadius,
-										giver.pos.y + Math.random() * Blob.baseRadius - Blob.baseRadius
-									),
-									target,
-									giver.owner
-								);
+								new Troop(new Vector2(giver.pos.x, giver.pos.y), target, giver.owner);
 								giver.troops--;
 							}
 						}
@@ -130,14 +118,21 @@ export class Blob {
 	}
 
 	register(stage: Container<DisplayObject>) {
+		this.build();
 		stage.addChild(this.container);
+
+		return this;
 	}
 
 	grow() {
-		if (this.troops < Blob.topCapacity) {
-			this.troops++;
-		} else if (this.troops > Blob.topCapacity) {
-			this.troops--;
+		if (this.owner == 'self') {
+			if (this.troops < Blob.topCapacity) {
+				this.troops++;
+			} else if (this.troops > Blob.topCapacity) {
+				this.troops--;
+			}
+
+			this.sendUpdate();
 		}
 	}
 
@@ -151,6 +146,18 @@ export class Blob {
 				this.owner = troop.owner;
 			}
 		}
+
+		this.sendUpdate();
+	}
+
+	sendUpdate() {
+		get(currentConnection)?.send({
+			type: 'capture.blobUpdate',
+			x: this.pos.x,
+			y: this.pos.y,
+			owner: ownerMap.get(this.owner),
+			troop: this.troops,
+		});
 	}
 
 	mirror() {
@@ -284,5 +291,9 @@ export class Blob {
 
 			line.lineTo(tx, ty);
 		}
+	}
+
+	destroy() {
+		Blob.blobs = Blob.blobs.filter((t) => t != this);
 	}
 }

@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { currentConnection } from '$lib/api/connection';
 	import { Blob } from '$lib/games/capture/Blob';
 	import { Troop } from '$lib/games/capture/Troop';
+	import { ownerMap, type Owner } from '$lib/games/capture/utils';
 
 	// import { Blob } from '$lib/games/capture/Blob';
 	import type { N } from '$lib/types/utils';
@@ -17,6 +20,7 @@
 
 	onMount(async () => {
 		check(container, 'container');
+		if (!$currentConnection) return goto('/');
 		// debugger;
 		app = new Application({
 			resizeTo: container,
@@ -79,34 +83,50 @@
 		 * #######################
 		 */
 		const blobs: Blob[] = [];
-		blobs.push(
-			new Blob(1, 1, 'other'), //
-			new Blob(9, 9, 'self') //
-		);
-		for (let i = 0; i < 6; i++) {
-			const blob = new Blob(
-				map(Math.random(), 0, 1, 1, 9),
-				map(Math.random(), 0, 1, 1, 9),
-				'clear'
+		if ($currentConnection.isHost) {
+			blobs.push(
+				new Blob(1, 1, 'other'), //
+				new Blob(9, 9, 'self') //
 			);
-			const newBlobs = [blob, ...blob.mirror()];
-			let overlapped = false;
-			check: {
-				for (const existing of [...blobs, ...newBlobs]) {
-					for (const newBlob of newBlobs) {
-						if (existing != newBlob && existing.overlaps(newBlob)) {
-							i--;
-							overlapped = true;
-							break check;
+			for (let i = 0; i < 6; i++) {
+				const blob = new Blob(
+					map(Math.random(), 0, 1, 1, 9),
+					map(Math.random(), 0, 1, 1, 9),
+					'clear'
+				);
+				const newBlobs = [blob, ...blob.mirror()];
+				let overlapped = false;
+				check: {
+					for (const existing of [...blobs, ...newBlobs]) {
+						for (const newBlob of newBlobs) {
+							if (existing != newBlob && existing.overlaps(newBlob)) {
+								i--;
+								overlapped = true;
+								break check;
+							}
 						}
 					}
 				}
+
+				if (!overlapped) {
+					blobs.push(...newBlobs);
+				} else {
+					newBlobs.forEach((b) => b.destroy());
+				}
+			}
+			for (const blob of blobs) {
+				blob.register(app.stage);
 			}
 
-			if (!overlapped) blobs.push(...newBlobs);
-		}
-		for (const blob of blobs) {
-			blob.register(app.stage);
+			$currentConnection.send({
+				type: 'capture.init',
+				blobData: blobs.map((blob) => ({
+					x: blob.pos.x,
+					y: blob.pos.y,
+					troops: blob.troops,
+					owner: ownerMap.get(blob.owner),
+				})),
+			});
 		}
 
 		/**#######################
@@ -117,7 +137,6 @@
 		let monotonic = 0;
 		let fpsWaiter = Waiter(1000);
 
-		// new Troop(blobs[1], blobs[0], 'self');
 		function draw() {
 			if (!app) return;
 
@@ -155,6 +174,55 @@
 			requestAnimationFrame(draw);
 		}
 		requestAnimationFrame(draw);
+
+		/**#######################
+		 * ###    CONNECTION   ###
+		 * #######################
+		 */
+		console.log($currentConnection);
+
+		$currentConnection.on('capture.init', ({ blobData }) => {
+			check(app);
+			for (const blob of blobData) {
+				blobs.push(new Blob(blob.x, blob.y, blob.owner, blob.troops).register(app.stage));
+			}
+		});
+		$currentConnection.on(
+			'capture.troopSpawn',
+			({ troopData: { x, y, target: targetPos, origin: originPos } }) => {
+				check(app);
+
+				const target = Blob.blobs.find((b) => b.pos.x == targetPos.x && b.pos.y == targetPos.y);
+				check(target);
+
+				const origin = Blob.blobs.find((b) => b.pos.x == originPos.x && b.pos.y == originPos.y);
+				check(origin);
+
+				origin.troops--;
+
+				new Troop(new Vector2(x, y), target, origin.owner, true);
+			}
+		);
+		/**
+		 * {
+			type: 'capture.blobUpdate',
+			x: this.pos.x,
+			y: this.pos.y,
+			owner: ownerMap.get(this.owner),
+			troop: this.troops,
+		}
+		*/
+		$currentConnection.on('capture.blobUpdate', ({ x, y, owner, troop }) => {
+			check(app);
+
+			const blob: Blob | undefined = Blob.blobs.find((b) => b.pos.x == x && b.pos.y == y);
+			check(blob);
+
+			console.log(blob);
+
+			blob.owner = owner;
+			blob.troops = troop;
+		});
 	});
 
 	onDestroy(() => {
