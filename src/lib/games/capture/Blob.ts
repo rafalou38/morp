@@ -24,7 +24,7 @@ export class Blob {
 	static selecting = false;
 	static blobs: Blob[] = [];
 	static app: Application;
-	static currentMoves: { from: Blob[]; to: Blob }[] = [];
+	static currentMoves: { from: Blob[]; to: Blob; type: Owner }[] = [];
 
 	static Setup(app: Application) {
 		this.app = app;
@@ -36,9 +36,11 @@ export class Blob {
 	}
 
 	static ValidateMove(target: Blob) {
+		const from = Blob.blobs.filter((b) => b.selected);
 		Blob.currentMoves.push({
 			to: target,
-			from: Blob.blobs.filter((b) => b.selected),
+			from: from,
+			type: 'self',
 		});
 	}
 
@@ -60,7 +62,7 @@ export class Blob {
 				// For each giver
 				for (let j = move.from.length - 1; j >= 0; j--) {
 					const giver = move.from[j];
-					if (giver == target) continue;
+					if (giver == target || giver.owner != move.type) continue;
 
 					if (giver.troops > 0) {
 						// Spawn a troop
@@ -79,6 +81,7 @@ export class Blob {
 						}
 						giver.sendUpdate();
 					} else {
+						console.log('Removed');
 						move.from.splice(j, 1);
 					}
 				}
@@ -149,6 +152,9 @@ export class Blob {
 			if (this.troops < 0) {
 				this.troops *= -1;
 				this.owner = troop.owner;
+
+				// // Changed owner, stop transfer
+				// Blob.currentMoves = Blob.currentMoves.filter((m) => !m.from.includes(this));
 			}
 		}
 
