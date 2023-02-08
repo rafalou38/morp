@@ -37,6 +37,7 @@
 		let w = app.view.width;
 		let h = app.view.height;
 
+		// FPS
 		const fpsCounter = new Text('60', {
 			fontFamily: 'Arial',
 			fill: ['#aaa'],
@@ -45,23 +46,39 @@
 		fpsCounter.position.set(0, 0);
 		app.stage.addChild(fpsCounter);
 
-		const grid = new Graphics();
+		// LOOSE SCREEN
+		const looseBg = new Graphics();
+		const looseContainer = new Container();
+		const bgText = new Text('YOU WON', {
+			fill: 0x0,
+			stroke: 0xffffff,
+			strokeThickness: w,
+			fontWeight: '900',
+			fontSize: ((1 / 10) * w) / window.devicePixelRatio,
+		});
 
+		looseBg.beginFill(0x000000);
+		looseBg.drawRect(0, 0, w, h);
+		looseBg.position.y = h;
+		// setInterval(() => (bg.position.y += 1), 10);
+		looseContainer.addChild(looseBg);
+
+		bgText.position.x = w / 2 - bgText.width / 2;
+		bgText.position.y = h / 2 - bgText.height / 2;
+
+		looseContainer.mask = bgText;
+
+		const grid = new Graphics();
 		function setup() {
 			check(app);
-
-			// settings.RESOLUTION = window.devicePixelRatio;
-
 			w = app.view.width;
 			h = app.view.height;
+			const canvasFactor = ((1 / 10) * w) / window.devicePixelRatio;
+			bgText.style.fontSize = canvasFactor;
 
 			if (GRID) {
 				grid.clear();
 				grid.lineStyle({ width: 1, color: 0xcccccc });
-				// debugger;
-				const canvasFactor = ((1 / 10) * w) / window.devicePixelRatio;
-				// const canvasFactor = 110.4;
-				console.log(canvasFactor);
 
 				for (let col = 0; col < 10; col++) {
 					grid.moveTo(col * canvasFactor, 0);
@@ -78,7 +95,6 @@
 			Blob.Configure(app);
 		}
 		setup();
-
 		app.renderer.on('resize', setup);
 		/**
 		 * #######################
@@ -137,12 +153,17 @@
 		 * ###    GAME LOOP    ###
 		 * #######################
 		 */
+		let gameEnded = false;
+		let gameStarted = $currentConnection.isHost;
+		let won = false;
 		let last = Date.now();
 		let monotonic = 0;
 		let fpsWaiter = Waiter(1000);
+		let checkWinner = Waiter(500);
 
 		function draw() {
 			if (!app) return;
+			requestAnimationFrame(draw);
 
 			// Timing
 			const dt = Date.now() - last;
@@ -151,6 +172,11 @@
 			if (fpsWaiter()) {
 				fpsCounter.text = Math.round(1000 / dt) + ' - ' + dt;
 			}
+
+			if (gameEnded) {
+				looseBg.position.y = Math.max(0, looseBg.position.y * (1 - 0.75 / dt));
+			}
+			if (!gameStarted || gameEnded) return;
 
 			// Mouse position fetching
 			let pos: N<Vector2> = null;
@@ -175,7 +201,31 @@
 			Troop.Update(dt);
 			Troop.Draw();
 
-			requestAnimationFrame(draw);
+			// Check winner
+			if (checkWinner())
+				check: {
+					let self = 0;
+					let other = 0;
+					for (const blob of blobs) {
+						if (blob.owner == 'self') self++;
+						else if (blob.owner == 'other') other++;
+					}
+
+					if (self == 0 && !Troop.troops.find((t) => t.owner == 'self')) {
+						gameEnded = true;
+						won = false;
+						bgText.text = 'YOU LOST';
+					} else if (other == 0 && !Troop.troops.find((t) => t.owner == 'other')) {
+						gameEnded = true;
+						won = true;
+						bgText.text = 'YOU WON';
+					}
+
+					if (gameEnded) {
+						app.stage.addChild(looseContainer);
+						setTimeout(() => goto('/play/capture', 1000 * 10));
+					}
+				}
 		}
 		requestAnimationFrame(draw);
 
@@ -204,6 +254,7 @@
 
 		$currentConnection.on('capture.init', ({ blobData }) => {
 			check(app);
+			gameStarted = true;
 			for (const blob of blobData) {
 				const basePos = new Vector2(blob.x, blob.y);
 				const nPos = basePos.sym(new Vector2(0, 10), new Vector2(10, 0));
