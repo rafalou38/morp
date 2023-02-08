@@ -69,7 +69,7 @@ export class Connection {
 		console.log('[P2P] Connecting to peer...');
 
 		const conn = this.peer.connect(P2PId('game', this.code), {
-			serialization: 'json'
+			serialization: 'json',
 		});
 		conn.on('open', console.log);
 
@@ -100,7 +100,7 @@ export class Connection {
 		console.log('[P2P] Disconnected from peer');
 	}
 	private handleData(data: p2pPayload): void {
-		console.log('[P2P] Received data', data);
+		// console.log('[P2P] Received data', data);
 		if (data.type === 'initialization') {
 			if (this.connected) return;
 

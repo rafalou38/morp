@@ -272,6 +272,7 @@ export class Blob {
 		}
 
 		this.graphic.hitArea = new Circle(0, 0, radiusPX);
+		this.graphic.endFill();
 
 		// TEXT
 		this.label.style.fontSize = Blob.baseRadius * canvasFactor * 2;
@@ -293,6 +294,8 @@ export class Blob {
 			this.graphic.drawCircle(tx, ty, 4);
 
 			line.lineTo(tx, ty);
+
+			this.graphic.endFill();
 		}
 	}
 

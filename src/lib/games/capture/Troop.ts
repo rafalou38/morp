@@ -13,28 +13,34 @@ import { Blob } from './Blob';
 import { GRAY, GREEN, ownerMap, RED, WHITE, type Owner } from './utils';
 
 let canvasFactor = 1;
+let grSelf: RenderTexture;
+let grOther: RenderTexture;
 export class Troop {
-	static container: ParticleContainer;
-	static grSelf: RenderTexture;
-	static grOther: RenderTexture;
+	static otherContainer: ParticleContainer;
+	static selfContainer: ParticleContainer;
 	static troops: Troop[] = [];
 	static Setup(app: Application) {
 		canvasFactor = ((1 / 10) * app.view.width) / window.devicePixelRatio;
 
-		this.container = new ParticleContainer(100_000);
-		app.stage.addChild(this.container);
-		const gr = new Graphics();
+		this.selfContainer = new ParticleContainer(100_000);
+		this.otherContainer = new ParticleContainer(100_000);
+		app.stage.addChild(this.selfContainer);
+		app.stage.addChild(this.otherContainer);
+		let gr = new Graphics();
 
 		gr.clear();
 		gr.beginFill(get(currentConnection)?.isHost ? GREEN : RED);
 		gr.drawCircle(0, 0, 0.05 * canvasFactor);
-		this.grSelf = app.renderer.generateTexture(gr);
+		gr.endFill();
+		grSelf = app.renderer.generateTexture(gr);
+
+		gr = new Graphics();
 
 		gr.clear();
 		gr.beginFill(get(currentConnection)?.isHost ? RED : GREEN);
-
-		gr.drawCircle(0, 0, 0.07 * canvasFactor);
-		this.grOther = app.renderer.generateTexture(gr);
+		gr.drawCircle(0, 0, 0.05 * canvasFactor);
+		gr.endFill();
+		grOther = app.renderer.generateTexture(gr);
 	}
 	static Update(dt: number) {
 		for (const troop of this.troops) {
@@ -64,10 +70,14 @@ export class Troop {
 		this.owner = origin.owner;
 		this.target = target;
 
-		if (this.owner === 'other') this.sprite = new Sprite(Troop.grOther);
-		else this.sprite = new Sprite(Troop.grSelf);
+		if (this.owner === 'other') {
+			this.sprite = new Sprite(grOther);
+			Troop.otherContainer.addChild(this.sprite);
+		} else {
+			this.sprite = new Sprite(grSelf);
+			Troop.selfContainer.addChild(this.sprite);
+		}
 
-		Troop.container.addChild(this.sprite);
 		Troop.troops.push(this);
 
 		if (!remote)
@@ -95,14 +105,18 @@ export class Troop {
 	}
 
 	draw() {
-		if (this.owner === 'other') this.sprite.texture = Troop.grOther;
-		else this.sprite.texture = Troop.grSelf;
+		if (this.owner === 'other') this.sprite.texture = grOther;
+		else this.sprite.texture = grSelf;
 
 		this.sprite.position.set(this.pos.x * canvasFactor, this.pos.y * canvasFactor);
 	}
 
 	destroy() {
 		Troop.troops = Troop.troops.filter((t) => t != this);
-		Troop.container.removeChild(this.sprite);
+		if (this.owner === 'other') {
+			Troop.otherContainer.removeChild(this.sprite);
+		} else {
+			Troop.selfContainer.removeChild(this.sprite);
+		}
 	}
 }

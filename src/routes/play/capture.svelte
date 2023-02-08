@@ -18,6 +18,9 @@
 	let app: N<Application>;
 	let container: N<HTMLDivElement>;
 
+	const GRID = 0;
+	const KBD = 1;
+
 	onMount(async () => {
 		check(container, 'container');
 		if (!$currentConnection) return goto('/');
@@ -52,7 +55,7 @@
 			w = app.view.width;
 			h = app.view.height;
 
-			if (0) {
+			if (GRID) {
 				grid.clear();
 				grid.lineStyle({ width: 1, color: 0xcccccc });
 				// debugger;
@@ -176,6 +179,23 @@
 		}
 		requestAnimationFrame(draw);
 
+		if (KBD)
+			container.addEventListener('keydown', ({ key }) => {
+				if (key === ' ') {
+					if (Blob.selecting) {
+						Blob.blobs.forEach((b) => (b.selected = false));
+						Blob.selecting = false;
+					} else {
+						Blob.blobs.forEach((b) => {
+							if (b.owner == 'self') {
+								b.selected = true;
+								Blob.selecting = true;
+							}
+						});
+					}
+				}
+			});
+
 		/**#######################
 		 * ###    CONNECTION   ###
 		 * #######################
@@ -197,6 +217,8 @@
 			check(target);
 			const origin = Blob.blobs.find((b) => b.id == originID);
 			check(origin);
+
+			// console.log(origin.owner);
 
 			new Troop(origin, target, true);
 		});
@@ -221,7 +243,7 @@
 </script>
 
 <div id="background">
-	<div id="pixi-capture-container" bind:this={container} />
+	<div id="pixi-capture-container" bind:this={container} tabindex="0" />
 </div>
 
 <style>
