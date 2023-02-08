@@ -22,8 +22,6 @@
 			resizeTo: container,
 			resolution: window.devicePixelRatio,
 			autoDensity: true,
-			// height: 960,
-			// width: 960,
 			antialias: true,
 			backgroundColor: '#fff',
 		});

@@ -17,21 +17,21 @@ export class Troop {
 	static grOther: RenderTexture;
 	static troops: Troop[] = [];
 	static Setup(app: Application) {
+		canvasFactor = ((1 / 10) * app.view.width) / window.devicePixelRatio;
+
 		this.container = new ParticleContainer(100_000);
 		app.stage.addChild(this.container);
 		const gr = new Graphics();
 
 		gr.clear();
 		gr.beginFill(GREEN);
-		gr.drawCircle(0, 0, 4);
+		gr.drawCircle(0, 0, 0.05 * canvasFactor);
 		this.grSelf = app.renderer.generateTexture(gr);
 
 		gr.clear();
 		gr.beginFill(RED);
-		gr.drawCircle(0, 0, 4);
+		gr.drawCircle(0, 0, 0.07 * canvasFactor);
 		this.grOther = app.renderer.generateTexture(gr);
-
-		canvasFactor = ((1 / 10) * app.view.width) / window.devicePixelRatio;
 	}
 	static Update(dt: number) {
 		for (const troop of this.troops) {
@@ -77,6 +77,9 @@ export class Troop {
 	}
 
 	draw() {
+		if (this.owner === 'other') this.sprite.texture = Troop.grOther;
+		else this.sprite.texture = Troop.grSelf;
+
 		this.sprite.position.set(this.pos.x * canvasFactor, this.pos.y * canvasFactor);
 	}
 

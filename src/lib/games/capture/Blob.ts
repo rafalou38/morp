@@ -244,8 +244,8 @@ export class Blob {
 				this.label.style.fill = WHITE;
 			} else {
 				const dash = new DashLine(this.graphic, {
-					dash: [10, 5],
-					width: 2,
+					dash: [0.15 * canvasFactor, 0.05 * canvasFactor],
+					width: 0.025 * canvasFactor,
 					color: GRAY,
 				});
 				this.label.style.fill = GRAY;
@@ -275,8 +275,8 @@ export class Blob {
 			const ty = mouse.y - this.container.y;
 			this.graphic.moveTo(0, 0);
 			const line = new DashLine(this.graphic, {
-				dash: [10, 2],
-				width: 2,
+				dash: [0.15 * canvasFactor, 0.05 * canvasFactor],
+				width: 0.025 * canvasFactor,
 				color: GREEN,
 			});
 			this.graphic.beginFill(GREEN);
