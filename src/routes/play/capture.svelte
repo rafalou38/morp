@@ -86,7 +86,7 @@
 		if ($currentConnection.isHost) {
 			blobs.push(
 				new Blob(1, 1, 'other'), //
-				new Blob(9, 9, 'self') //
+				new Blob(9, 9, 'self')
 			);
 			for (let i = 0; i < 6; i++) {
 				const blob = new Blob(

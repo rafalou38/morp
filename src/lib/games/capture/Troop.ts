@@ -26,11 +26,13 @@ export class Troop {
 		const gr = new Graphics();
 
 		gr.clear();
+		gr.beginFill(get(currentConnection)?.isHost ? GREEN : RED);
 		gr.drawCircle(0, 0, 0.05 * canvasFactor);
 		this.grSelf = app.renderer.generateTexture(gr);
 
 		gr.clear();
-		gr.beginFill(RED);
+		gr.beginFill(get(currentConnection)?.isHost ? RED : GREEN);
+
 		gr.drawCircle(0, 0, 0.07 * canvasFactor);
 		this.grOther = app.renderer.generateTexture(gr);
 	}

@@ -263,8 +263,9 @@ export class Blob {
 		} else {
 			if (this.owner == 'self') {
 				if (this.hovered) radiusPX *= 1.1;
-				this.graphic.beginFill(GREEN);
-			} else if (this.owner == 'other') this.graphic.beginFill(RED);
+				this.graphic.beginFill(get(currentConnection)?.isHost ? GREEN : RED);
+			} else if (this.owner == 'other')
+				this.graphic.beginFill(get(currentConnection)?.isHost ? RED : GREEN);
 
 			this.label.style.fill = WHITE;
 			this.graphic.drawCircle(0, 0, radiusPX);
@@ -286,9 +287,9 @@ export class Blob {
 			const line = new DashLine(this.graphic, {
 				dash: [0.15 * canvasFactor, 0.05 * canvasFactor],
 				width: 0.025 * canvasFactor,
-				color: GREEN,
+				color: get(currentConnection)?.isHost ? GREEN : RED,
 			});
-			this.graphic.beginFill(GREEN);
+			this.graphic.beginFill(get(currentConnection)?.isHost ? GREEN : RED);
 			this.graphic.drawCircle(tx, ty, 4);
 
 			line.lineTo(tx, ty);
