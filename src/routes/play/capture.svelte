@@ -125,6 +125,7 @@
 					y: blob.pos.y,
 					troops: blob.troops,
 					owner: ownerMap.get(blob.owner),
+					id: blob.id,
 				})),
 			});
 		}
@@ -184,41 +185,27 @@
 		$currentConnection.on('capture.init', ({ blobData }) => {
 			check(app);
 			for (const blob of blobData) {
-				blobs.push(new Blob(blob.x, blob.y, blob.owner, blob.troops).register(app.stage));
+				const basePos = new Vector2(blob.x, blob.y);
+				const nPos = basePos.sym(new Vector2(0, 10), new Vector2(10, 0));
+				blobs.push(new Blob(nPos.x, nPos.y, blob.owner, blob.troops, blob.id).register(app.stage));
 			}
 		});
-		$currentConnection.on(
-			'capture.troopSpawn',
-			({ troopData: { x, y, target: targetPos, origin: originPos } }) => {
-				check(app);
-
-				const target = Blob.blobs.find((b) => b.pos.x == targetPos.x && b.pos.y == targetPos.y);
-				check(target);
-
-				const origin = Blob.blobs.find((b) => b.pos.x == originPos.x && b.pos.y == originPos.y);
-				check(origin);
-
-				origin.troops--;
-
-				new Troop(new Vector2(x, y), target, origin.owner, true);
-			}
-		);
-		/**
-		 * {
-			type: 'capture.blobUpdate',
-			x: this.pos.x,
-			y: this.pos.y,
-			owner: ownerMap.get(this.owner),
-			troop: this.troops,
-		}
-		*/
-		$currentConnection.on('capture.blobUpdate', ({ x, y, owner, troop }) => {
+		$currentConnection.on('capture.troopSpawn', ({ troopData: { x, y, targetID, originID } }) => {
 			check(app);
 
-			const blob: Blob | undefined = Blob.blobs.find((b) => b.pos.x == x && b.pos.y == y);
-			check(blob);
+			const target = Blob.blobs.find((b) => b.id == targetID);
+			check(target);
+			const origin = Blob.blobs.find((b) => b.id == originID);
+			check(origin);
 
-			console.log(blob);
+			new Troop(origin, target, true);
+		});
+
+		$currentConnection.on('capture.blobUpdate', ({ id, owner, troop }) => {
+			check(app);
+
+			const blob: Blob | undefined = Blob.blobs.find((b) => b.id == id);
+			check(blob);
 
 			blob.owner = owner;
 			blob.troops = troop;

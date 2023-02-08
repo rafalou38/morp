@@ -26,7 +26,6 @@ export class Troop {
 		const gr = new Graphics();
 
 		gr.clear();
-		gr.beginFill(GREEN);
 		gr.drawCircle(0, 0, 0.05 * canvasFactor);
 		this.grSelf = app.renderer.generateTexture(gr);
 
@@ -54,16 +53,16 @@ export class Troop {
 	target: Blob;
 	remote: boolean;
 
-	constructor(pos: Vector2, target: Blob, owner: Owner, remote = false) {
+	constructor(origin: Blob, target: Blob, remote = false) {
 		this.remote = remote;
-		this.pos = pos.copy();
+		this.pos = origin.pos.copy();
 		this.pos.x += Math.random() * Blob.baseRadius - Blob.baseRadius;
 		this.pos.y += Math.random() * Blob.baseRadius - Blob.baseRadius;
 
-		this.owner = owner;
+		this.owner = origin.owner;
 		this.target = target;
 
-		if (owner === 'other') this.sprite = new Sprite(Troop.grOther);
+		if (this.owner === 'other') this.sprite = new Sprite(Troop.grOther);
 		else this.sprite = new Sprite(Troop.grSelf);
 
 		Troop.container.addChild(this.sprite);
@@ -73,10 +72,10 @@ export class Troop {
 			get(currentConnection)?.send({
 				type: 'capture.troopSpawn',
 				troopData: {
-					x: pos.x,
-					y: pos.y,
-					target: target.pos,
-					origin: pos,
+					x: this.pos.x,
+					y: this.pos.y,
+					targetID: target.id,
+					originID: origin.id,
 				},
 			});
 	}
