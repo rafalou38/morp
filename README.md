@@ -1,7 +1,34 @@
 ## Resources:
 
-https://htmlcolorcodes.com/fr/tableau-de-couleur/
-https://icones.js.org/
+- https://htmlcolorcodes.com/fr/tableau-de-couleur/
+- https://icones.js.org/
+
+## Idées:
+
+| Jeu                        | Auteur         | Progrès |
+| -------------------------- | -------------- | :-----: |
+| Tic-Tac-Toe                | @rafalou38     |    ✅    |
+| Tic-Tac-Toe Ultimate       | @rafalou38     |    ✅    |
+| Click Race                 | @rafalou38     |    ✅    |
+| Capture war                | @rafalou38     |    ✅    |
+| Battle ship                | @Aneyx         |    ✅    |
+| Tafl                       | @johannesbeere |    ▶️    |
+| Shooter                    | @Aneyx         |    ▶️    |
+| Echec                      | @elboe-greese  |    ▶️    |
+| Jeu Dactylographie         | @ivaaan-mrl    |         |
+| Jeu des points d'Alexander |                |         |
+| Jeu de go                  |                |         |
+| Jeu de la taupe            |                |         |
+| Puissance 4                |                |         |
+| Pong                       |                |         |
+| Tank trouble               |                |         |
+| Bomberman                  |                |         |
+| Age of war                 |                |         |
+| Tower Defense              |                |         |
+| Demineur                   |                |         |
+| Tetris duel                |                |         |
+| Advance wars               |                |         |
+
 
 ## Credits
 
