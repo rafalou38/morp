@@ -1,7 +1,8 @@
 ## Resources:
 
-- https://htmlcolorcodes.com/fr/tableau-de-couleur/
-- https://icones.js.org/
+- [Couleurs](https://htmlcolorcodes.com/fr/tableau-de-couleur/)
+- [icônes](https://icones.js.org/)
+- [curseurs](https://codepen.io/michaelgearon/embed/wGKNgp?height=500&theme-id=0&slug-hash=wGKNgp&default-tab=result&animations=run&editable=&embed-version=2&user=michaelgearon&name=cp_embed_1)
 
 ## Idées:
 
