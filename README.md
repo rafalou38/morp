@@ -15,11 +15,11 @@
 | Tafl                       | @johannesbeere |    ▶️    |
 | Shooter                    | @Aneyx         |    ▶️    |
 | Echec                      | @elboe-greese  |    ▶️    |
+| Puissance 4                | @rafalou38     |    ▶️    |
 | Jeu Dactylographie         | @ivaaan-mrl    |         |
 | Jeu des points d'Alexander |                |         |
 | Jeu de go                  |                |         |
 | Jeu de la taupe            |                |         |
-| Puissance 4                |                |         |
 | Pong                       |                |         |
 | Tank trouble               |                |         |
 | Bomberman                  |                |         |
