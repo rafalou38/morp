@@ -37,6 +37,11 @@
 			for (let i = 0; i < 4; i++) {
 				bulleta[i][0] = -1;
 			}
+			if ($currentConnection?.isHost) {
+				shipa[0] = 250;
+			} else {
+				shipa[0] = 500;
+			}
 			$currentConnection?.send({
 				type: 'battleship.start',
 			});
@@ -59,12 +64,11 @@
 				p5.stroke(100, 50, 0);
 				p5.rect(50, 50, p5.width - 100, p5.height - 100);
 				p5.textSize(50);
+				p5.fill(255, 255, 100);
 				if (shipb[4] < 0) {
-					p5.fill(255, 0, 0);
 					p5.text('YOU WON', 100, 100);
 				}
 				if (shipa[4] < 0) {
-					p5.fill(0, 0, 255);
 					p5.text('YOU LOST', 100, 100);
 				}
 				p5.textSize(35);
@@ -93,13 +97,17 @@
 						$currentConnection?.send({
 							type: 'battleship.res',
 						});
-						shipa[0] = 250;
+						if ($currentConnection?.isHost) {
+							shipa[0] = 250;
+						} else {
+							shipa[0] = 500;
+						}
+						shipb[0] = 500;
 						shipa[1] = 500;
 						shipa[2] = 0;
 						shipa[3] = 0;
 						shipa[4] = 100;
 
-						shipb[0] = 500;
 						shipb[1] = 500;
 						shipb[2] = 0;
 						shipb[3] = 0;
@@ -369,11 +377,19 @@
 
 				if (p5.keyIsDown(18)) var factor = 3;
 				else var factor = 1;
-				shipa[0] += p5.cos(shipa[2]) * -1.5 * factor;
-				shipa[1] += p5.sin(shipa[2]) * -1.5 * factor;
+				shipa[5] += p5.cos(shipa[2]) * -1 * factor;
+				shipa[6] += p5.sin(shipa[2]) * -1 * factor;
+				shipa[0] += shipa[5] / 50;
+				shipa[1] += shipa[6] / 50;
+				shipa[5] *= 0.99;
+				shipa[6] *= 0.99;
 
-				shipb[0] += p5.cos(shipb[2]) * -1.5;
-				shipb[1] += p5.sin(shipb[2]) * -1.5;
+				shipb[5] += p5.cos(shipb[2]) * -1;
+				shipb[6] += p5.sin(shipb[2]) * -1;
+				shipb[0] += shipb[5] / 50;
+				shipb[1] += shipb[6] / 50;
+				shipb[5] *= 0.99;
+				shipb[6] *= 0.99;
 
 				p5.noStroke();
 				for (let i = 0; i < 4; i++) {
@@ -520,10 +536,8 @@
 				) {
 					shipa[4] -= 3;
 					shipb[4] -= 0.5;
-					shipb[0] += p5.cos(shipb[2]) * 7;
-					shipb[1] += p5.sin(shipb[2]) * 7;
-					shipa[0] += p5.cos(shipa[2]) * -5;
-					shipa[1] += p5.sin(shipa[2]) * -5;
+					shipb[5] += p5.cos(shipb[2]) * 50;
+					shipb[6] += p5.sin(shipb[2]) * 50;
 					data[1][2] += 1;
 				}
 				if (
@@ -538,10 +552,8 @@
 				) {
 					shipa[4] -= 0.5;
 					shipb[4] -= 3;
-					shipa[0] += p5.cos(shipa[2]) * 7;
-					shipa[1] += p5.sin(shipa[2]) * 7;
-					shipb[0] += p5.cos(shipb[2]) * -5;
-					shipb[1] += p5.sin(shipb[2]) * -5;
+					shipa[5] += p5.cos(shipa[2]) * 50;
+					shipa[6] += p5.sin(shipa[2]) * 50;
 					data[0][2] += 1;
 				}
 			}

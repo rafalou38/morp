@@ -38,8 +38,8 @@
 		</a>
 		<a href="/play/batlleship" class="block">
 			<div class="w-48 h-full rounded-md overflow-hidden bg-slate-700 cursor-pointer">
-				<img src="/images/game-thumbnails/captue.png" alt="Click race" class="w-full" />
-				<h3 class="text-center text-2xl font-semibold py-3 px-8  text-white">battle ship</h3>
+				<img src="/images/game-thumbnails/battleship.png" alt="shipbattle" class="w-full" />
+				<h3 class="text-center text-2xl font-semibold py-3 px-8  text-white">shipbattle</h3>
 			</div>
 		</a>
 	</div>
