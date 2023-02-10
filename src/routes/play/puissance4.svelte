@@ -206,14 +206,18 @@
         */
 		function setup() {
 			for (let x = 0; x < 7; x++) {
-				grid[x] = [];
+				// Reuse if already exiting
+				grid[x] = grid[x] || [];
 				for (let y = 0; y < 6; y++) {
 					let tx = (psz / 7) * x + psz / 7 / 2;
 					let ty = (psz / 7) * y + psz / 7 / 2;
 					background.beginHole();
 					background.drawCircle(tx + padding, ty + padding, cellRadius);
 
-					const cellGr = new Graphics();
+					const cellGr = grid[x][y]?.gr || new Graphics();
+					cellGr.clear();
+					cellGr.removeAllListeners();
+
 					cellGr.position.set(tx + padding, ty + padding);
 					cellGr.beginFill(0xffffff);
 					cellGr.drawCircle(0, 0, cellRadius);
@@ -237,8 +241,9 @@
 						bottomCell.hovered = false;
 						reDraw();
 					};
+
 					cellGr.onclick = () => {
-						if (next != 'self') return;
+						if (next != 'self' || gameEnded) return;
 						const botY = getBottomCellY(x);
 						if (botY < 0) return;
 
