@@ -48,5 +48,11 @@
 				<h3 class="text-center text-2xl font-semibold py-3 px-8  text-white">shooter</h3>
 			</div>
 		</a>
+		<a href="/play/puissance4" class="block">
+			<div class="w-48 h-full rounded-md overflow-hidden bg-slate-700 cursor-pointer">
+				<img src="/images/game-thumbnails/p4.png" alt="Click race" class="w-full" />
+				<h3 class="text-center text-2xl font-semibold py-3 px-8  text-white">Puissance 4</h3>
+			</div>
+		</a>
 	</div>
 </div>
