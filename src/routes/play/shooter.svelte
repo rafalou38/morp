@@ -5,10 +5,9 @@
 	import { goto } from '$app/navigation';
 
 	import { Waiter } from '$lib/utils/time';
-	import { Circle, FillStyle, Rectangle } from 'pixi.js';
-	import { text } from 'svelte/internal';
+	import { Rectangle } from 'pixi.js';
 
-	const sendDelay = Waiter(50);
+	const sendDelay = Waiter(10);
 
 	const main = (p5: p5js) => {
 		if (!$currentConnection) return goto('/');
@@ -19,14 +18,14 @@
 		let playerpos = [150, 0, 30, 45, 0, 1];
 		let enemypos = [150, 0, 30, 45, 0];
 		let vector = [0, 0];
-		let gravity = 25;
+		let gravity = 20;
 
 		let collision = new Array(194);
 		for (let i = 0; i < 194; i++) {
 			collision[i] = new Array(2);
 		}
 		//   0;pv    1;  bullets   2;smoke 3;trap
-		let playerdata = [100, 50, 2, 1];
+		let playerdata = [100, 50, 0, 0];
 		//   0-10 pl.bullets   10-20 en.bullets  20-22 pl.smoke  22-24 en.smoke    26-30 pl.trap   24pl.grab  25  en.grab
 		let weapon = new Array(30);
 		for (let i = 0; i < 30; i++) {
@@ -149,7 +148,7 @@
 		};
 
 		p5.draw = () => {
-			if (Date.now() - refill >= 30_000 * 1.5) {
+			if (Date.now() - refill >= 60_000) {
 				refill = Date.now();
 				playerdata[1] = 50;
 				playerdata[2] += 1;
@@ -175,8 +174,11 @@
 				vector[0] += 6;
 			}
 			if (!kpr[0]) {
-				gravity = 175;
+				gravity = 75;
 			}
+			playerpos[0] += vector[0] / 10;
+			playerpos[1] += vector[1] / 100;
+
 			vector[0] *= 0.9;
 			vector[1] = vector[1] * (1 - gravity / 1000) + gravity;
 			// line(playerpos[0]-screenpos[0]*50,playerpos[1]-screenpos[1]-playerpos[3]/2,playerpos[0]-screenpos[0]*50+vector[0],playerpos[1]-screenpos[1]-playerpos[3]/2+vector[1]/10-10);
@@ -194,43 +196,38 @@
 				if (
 					playerpos[1] > -collision[i][1] * 50 + 1000 &&
 					playerpos[1] - 12.5 < (-collision[i][1] + 1) * 50 + 1000 &&
-					playerpos[0] + (playerpos[2] / 5) * 2 + 5 > collision[i][0] * 50 &&
-					playerpos[0] - (playerpos[2] / 5) * 2 + 5 < (collision[i][0] + 1) * 50
+					playerpos[0] + (playerpos[2] / 5) * 2 - 2.5 > collision[i][0] * 50 &&
+					playerpos[0] - (playerpos[2] / 5) * 2 + 2.5 < (collision[i][0] + 1) * 50
 				) {
 					p5.fill(255, 255, 0);
 
 					vector[1] = 75;
 					playerpos[1] -= playerpos[1] - (-collision[i][1] * 50 + 1000);
 					if (kpr[0]) {
-						vector[1] = -1750;
-						gravity = 35;
+						vector[1] = -1950;
+						gravity = 45;
 					}
 				} else if (
-					playerpos[1] - playerpos[3] > -collision[i][1] * 50 + 1000 &&
-					playerpos[1] - playerpos[3] < (-collision[i][1] + 1) * 50 + 1000 &&
-					playerpos[0] + playerpos[2] / 3 > collision[i][0] * 50 &&
-					playerpos[0] - playerpos[2] / 3 < (collision[i][0] + 1) * 50
+					playerpos[1] > -collision[i][1] * 50 + 1000 &&
+					playerpos[1] - 5 - playerpos[3] < (-collision[i][1] + 1) * 50 + 1000 &&
+					playerpos[0] + playerpos[2] / 2.5 - 5 > collision[i][0] * 50 &&
+					playerpos[0] - playerpos[2] / 2.5 + 5 < (collision[i][0] + 1) * 50
 				) {
 					p5.fill(255, 0, 255);
-					if (kpr[6]) {
-						playerpos[1] += 0.2;
-						vector[1] = 0;
-					} else {
-						playerpos[1] += 5;
-						vector[1] = 25;
-					}
+					playerpos[1] += 5;
+					vector[1] = 25;
 				} else {
 					p5.fill(255);
 				}
 				if (
 					playerpos[1] - 10 > -collision[i][1] * 50 + 1000 &&
-					playerpos[1] - playerpos[3] + 20 < (-collision[i][1] + 1) * 50 + 1000 &&
-					playerpos[0] - 5 - playerpos[2] / 2 < (collision[i][0] + 1) * 50 &&
-					playerpos[0] - 5 + playerpos[2] / 2 > collision[i][0] * 50
+					playerpos[1] - playerpos[3] + 10 < (-collision[i][1] + 1) * 50 + 1000 &&
+					playerpos[0] - 5 - playerpos[2] / 3 < (collision[i][0] + 1) * 50 &&
+					playerpos[0] - 12.5 + playerpos[2] / 3 > collision[i][0] * 50
 				) {
 					p5.fill(0, 255, 0);
 					vector[0] = 0;
-					playerpos[0] += 0.3;
+					playerpos[0] = (collision[i][0] + 1) * 50 + 5 + playerpos[2] / 2.5;
 					if (weapon[24][2] != 0) {
 						weapon[24][2] = 0;
 						$currentConnection?.send({
@@ -239,13 +236,13 @@
 					}
 				} else if (
 					playerpos[1] - 10 > -collision[i][1] * 50 + 1000 &&
-					playerpos[1] - playerpos[3] + 20 < (-collision[i][1] + 1) * 50 + 1000 &&
-					playerpos[0] + 5 + playerpos[2] / 2 > collision[i][0] * 50 &&
-					playerpos[0] - 5 + playerpos[2] / 2 < collision[i][0] * 50
+					playerpos[1] - playerpos[3] + 10 < (-collision[i][1] + 1) * 50 + 1000 &&
+					playerpos[0] + 5 + playerpos[2] / 3 > collision[i][0] * 50 &&
+					playerpos[0] - 12.5 + playerpos[2] / 3 < (collision[i][0] + 1) * 50
 				) {
 					p5.fill(0, 255, 0);
 					vector[0] = 0;
-					playerpos[0] -= 0.3;
+					playerpos[0] = collision[i][0] * 50 - 5 - playerpos[2] / 2.5;
 					if (weapon[24][2] != 0) {
 						weapon[24][2] = 0;
 						$currentConnection?.send({
@@ -347,9 +344,11 @@
 						if (i == 24) {
 							vector[0] = 0;
 							vector[1] = 0;
-							playerpos[0] += (weapon[i][2] * p5.abs(weapon[i][0] - playerpos[0])) / 30 + 1;
+							playerpos[0] +=
+								(weapon[i][2] * p5.abs(weapon[i][0] - playerpos[0])) / 30 + 2 * weapon[i][2];
 						} else if (i == 25) {
-							enemypos[0] += (weapon[i][2] * p5.abs(weapon[i][0] - enemypos[0])) / 30 + 1;
+							enemypos[0] +=
+								(weapon[i][2] * p5.abs(weapon[i][0] - enemypos[0])) / 30 + 2 * weapon[i][2];
 						}
 					}
 					if (i == 24) {
@@ -431,8 +430,6 @@
 				vector[0] = 0;
 				playerpos[0] += 1;
 			}
-			playerpos[0] += vector[0] / 10;
-			playerpos[1] += vector[1] / 100;
 
 			p5.stroke(0, 0, 255);
 			p5.rect(
@@ -538,8 +535,8 @@
 
 			p5.fill(0, 0, 255);
 
-			if (Date.now() - lastgrab - 7000 * 1.5 <= 0) {
-				p5.rect(0, 50, (7000 * 1.5 - Date.now() + lastgrab) / 70, 5);
+			if (Date.now() - lastgrab - 3000 <= 0) {
+				p5.rect(0, 50, (3000 - Date.now() + lastgrab) / 30, 5);
 			}
 			if (playerpos[0] < -20 || playerpos[0] > 2000 || playerpos[1] < -100 || playerpos[1] > 2000) {
 				playerpos[0] = 200;
@@ -574,7 +571,7 @@
 			}
 			p5.textSize(25);
 			p5.fill(0, 0, 255);
-			p5.text(point[1], p5.width - 100, 25);
+			p5.text(point[0], p5.width - 100, 25);
 			p5.fill(255, 0, 0);
 			p5.text(point[1], p5.width - 25, 25);
 			p5.textSize(10);
@@ -583,7 +580,7 @@
 					type: 'shooter.dead',
 				});
 				playerpos = [150, 0, 30, 45, 0, 1];
-				playerdata = [100, 50, 2, 1];
+				playerdata = [100, 50, 0, 0];
 				refill = 0;
 				playerpos[1] = 800;
 				if ($currentConnection?.isHost) {
@@ -593,6 +590,9 @@
 				}
 				point[1] += 1;
 			}
+			p5.noFill();
+			p5.stroke(100, 255, 100);
+			p5.rect(0, 0, p5.width, p5.height);
 		};
 
 		let lastShoot = 0;
@@ -612,7 +612,7 @@
 				playerdata[1] -= 1;
 			}
 			if (p5.keyIsDown(65)) {
-				if (Date.now() - lastgrab >= 7000 * 1.5) {
+				if (Date.now() - lastgrab >= 3000) {
 					lastgrab = Date.now();
 					weapon[24][2] = playerpos[5];
 					$currentConnection?.send({
@@ -621,7 +621,7 @@
 					});
 					weapon[24][0] = playerpos[0];
 					weapon[24][1] = playerpos[1] - playerpos[3] / 2;
-				} else if (Date.now() - lastgrab >= 500 * 1.5) {
+				} else if (Date.now() - lastgrab >= 500) {
 					$currentConnection?.send({
 						type: 'shooter.ngrab',
 					});
@@ -661,7 +661,7 @@
 		});
 		$currentConnection?.on('shooter.dead', ({}) => {
 			playerpos = [150, 0, 30, 45, 0, 1];
-			playerdata = [100, 50, 2, 1];
+			playerdata = [100, 50, 0, 0];
 			refill = 0;
 			playerpos[1] = 800;
 			if ($currentConnection?.isHost) {
@@ -674,7 +674,7 @@
 
 		$currentConnection?.on('shooter.boom', ({}) => {
 			boom = Date.now();
-			playerdata[0] -= 10;
+			playerdata[0] -= 5;
 		});
 		let touch = 0;
 		$currentConnection?.on('shooter.hit', ({ d }) => {
@@ -682,7 +682,7 @@
 			if (touch < 200) {
 				touch += 1;
 			}
-			playerdata[0] -= 1;
+			playerdata[0] -= 5;
 		});
 		$currentConnection?.on('shooter.shoot', ({ o }) => {
 			weapon[o + 10][0] = enemypos[0];
@@ -734,8 +734,8 @@
 
 <style>
 	#background {
-		background: url(/images/grass.jpg);
-		background-size: 450px;
+		background: url(/images/shootertexture/shooterbackground.png);
+		background-size: 500px;
 		display: grid;
 		place-items: center;
 		height: 100%;
