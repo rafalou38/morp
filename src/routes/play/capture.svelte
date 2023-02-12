@@ -19,7 +19,7 @@
 	let container: N<HTMLDivElement>;
 
 	const GRID = 0;
-	const KBD = 1;
+	const KBD = 0;
 
 	onMount(async () => {
 		check(container, 'container');
@@ -331,7 +331,7 @@
 				const origin = Blob.blobs.find((b) => b.id == originID);
 				check(origin);
 
-				new Troop(origin, target, true);
+				new Troop(origin, target, true, new Vector2(x, y));
 			});
 			$currentConnection.on('capture.blobUpdate', ({ id, owner, troop }) => {
 				check(app);
