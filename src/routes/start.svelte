@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { FriendPool } from '$lib/api/FriendsPool';
 	import JoinPopup from '$lib/components/start/JoinPopup.svelte';
 	import { randomCode } from '$lib/utils/gameCode';
+
+	FriendPool.Configure();
 
 	async function host() {
 		const code = randomCode();

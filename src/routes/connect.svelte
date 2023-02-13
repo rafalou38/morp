@@ -7,8 +7,8 @@
 				status: 200,
 				props: {
 					gameCode: '',
-					hosted: false
-				}
+					hosted: false,
+				},
 			};
 		}
 		const gameCode = url.searchParams.get('code');
@@ -20,8 +20,8 @@
 			status: 200,
 			props: {
 				gameCode,
-				hosted
-			}
+				hosted,
+			},
 		};
 	};
 </script>
@@ -47,9 +47,9 @@
 				hosted,
 				() => {
 					connected = true;
-					setTimeout(() => {
-						goto('/play');
-					}, 500);
+					// setTimeout(() => {
+					goto('/play');
+					// }, 100);
 				},
 				() => {
 					error = 'Connection failed';

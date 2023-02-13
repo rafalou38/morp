@@ -1,7 +1,12 @@
-<div class="grow">
-	<h2 class="text-white text-5xl text-center m-16 font-bold">Choose a game:</h2>
+<script>
+	import SocialRow from '$lib/components/SocialRow.svelte';
+</script>
 
-	<div class="flex gap-16 justify-center flex-wrap w-full">
+<div class="grow">
+	<SocialRow />
+	<h2 class="text-white text-5xl text-center m-8 font-bold">Choose a game:</h2>
+
+	<div class="flex gap-8 p-4 justify-center flex-wrap w-full">
 		<a href="/play/ttt-ultimate" class="block">
 			<div class="w-48 h-full rounded-md overflow-hidden bg-slate-700 cursor-pointer">
 				<img

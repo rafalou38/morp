@@ -3,8 +3,10 @@ import { P2PId } from '.';
 import { Peer } from './peerjs';
 import type PeerCls from 'peerjs';
 import { writable } from 'svelte/store';
+import { FriendPool } from './FriendsPool';
 
 export const currentConnection = writable<Connection | null>(null);
+
 export class Connection {
 	peer: PeerCls;
 	code: string;
@@ -32,8 +34,8 @@ export class Connection {
 
 		this.selfHosted = host;
 		this.code = code;
-		this.cb = connectionCB;
-		this.errCb = errCD;
+		if (connectionCB) this.cb = connectionCB;
+		if (errCD) this.errCb = errCD;
 
 		if (this.selfHosted) {
 			const peerID = P2PId('game', this.code);
@@ -82,7 +84,7 @@ export class Connection {
 
 		console.log('[P2P] Checking connection');
 		this.connectTimeout = setTimeout(() => {
-			clearInterval(this.initInterval);
+			if (this.initInterval) clearInterval(this.initInterval);
 			this.connectTimeout = null;
 			console.log('[P2P] Connection timed out');
 			this.peer.disconnect();
@@ -101,20 +103,19 @@ export class Connection {
 		console.log('[P2P] Disconnected from peer');
 	}
 	private handleData(data: p2pPayload): void {
-		// console.log('[P2P] Received data', data);
+		if (!this.connection) throw new Error('Received data without connection ?!');
+
 		if (data.type === 'initialization') {
 			if (this.connected) return;
 
 			console.log('[P2P] Sending initialization');
 			this.connection.send({ type: 'initialization' });
 
-			clearTimeout(this.connectTimeout);
-			clearInterval(this.initInterval);
+			if (this.connectTimeout) clearTimeout(this.connectTimeout);
+			if (this.initInterval) clearInterval(this.initInterval);
 
 			console.log('[P2P] Connection established with', this.connection.peer);
-
-			this.connected = true;
-			this.cb(this.connection);
+			this.success();
 			return;
 		}
 
@@ -123,8 +124,17 @@ export class Connection {
 		if (listener) {
 			listener(data);
 		} else {
+			// TODO: Queue event
 			console.log('[P2P] No listener for', data.type);
 		}
+	}
+	private success() {
+		if (!this.connection) throw new Error('Success data without connection ?!');
+
+		FriendPool.setupListeners(this);
+
+		this.connected = true;
+		this.cb(this.connection);
 	}
 	on(event: string, cb: (data: p2pPayload) => void): void {
 		this.listeners.set(event, cb);
