@@ -1,9 +1,11 @@
 <script>
+	import FriendPopup from '$lib/components/FriendPopup.svelte';
 	import SocialRow from '$lib/components/SocialRow.svelte';
 </script>
 
 <div class="grow">
 	<SocialRow />
+	<FriendPopup />
 	<h2 class="text-white text-5xl text-center m-8 font-bold">Choose a game:</h2>
 
 	<div class="flex gap-8 p-4 justify-center flex-wrap w-full">

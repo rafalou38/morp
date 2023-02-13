@@ -7,19 +7,20 @@ import { P2PId } from '.';
 import { get, writable } from 'svelte/store';
 import { Connection, currentConnection } from './connection';
 import { randomUsername } from './RadomWords';
+import { goto } from '$app/navigation';
 
-export const userInfo = writable<{ uuid: string | null; username: string | null }>({
-	uuid: null,
-	username: null,
-});
-export const opponentInfo = writable<{ uuid: string | null; username: string | null }>({
-	uuid: null,
-	username: null,
-});
+interface User {
+	uuid: string;
+	username: string | null;
+	friend?: boolean;
+}
+
+export const userInfo = writable<User | null>(null);
+export const opponentInfo = writable<User | null>(null);
 
 export class FriendPool {
 	static peer: PeerCls;
-	static friends: string[];
+	static friends: User[];
 	private static loaded = false;
 	static async Configure() {
 		if (this.loaded) return;
@@ -45,7 +46,7 @@ export class FriendPool {
 			randomUsername().then((v) => {
 				if (v)
 					userInfo.update((old) => ({
-						...old,
+						uuid: old?.uuid || nanoid(),
 						username: v,
 					}));
 			});
@@ -60,15 +61,22 @@ export class FriendPool {
 			opponentInfo.set({
 				username,
 				uuid,
+				friend: !!this.friends.find((user) => user.uuid == uuid),
 			});
+		});
+		con.on('social.validateFriend', () => {
+			this.addFriend();
 		});
 
 		const sendData = () => {
-			con.send({
-				type: 'social.userInfo',
-				username: get(userInfo).username,
-				uuid: get(userInfo).uuid,
-			});
+			const data = get(userInfo);
+			if (data) {
+				con.send({
+					type: 'social.userInfo',
+					username: data.username,
+					uuid: data.uuid,
+				});
+			}
 		};
 		sendData();
 
@@ -76,8 +84,38 @@ export class FriendPool {
 	}
 
 	static save() {
-		const { uuid, username } = get(userInfo);
-		if (uuid) localStorage.setItem('FriendPool.uuid', uuid);
-		if (username) localStorage.setItem('FriendPool.username', username);
+		const data = get(userInfo);
+		if (data) {
+			localStorage.setItem('FriendPool.uuid', data.uuid);
+			if (data?.username) {
+				localStorage.setItem('FriendPool.username', data.username);
+			}
+		}
+	}
+
+	static askFriendship() {
+		const con = get(currentConnection);
+		if (!con) return goto('/');
+
+		con.send({ type: 'social.askFriend' });
+	}
+	static validateFriendship() {
+		const con = get(currentConnection);
+		if (!con) return goto('/');
+
+		this.addFriend();
+		con.send({ type: 'social.validateFriend' });
+	}
+
+	private static addFriend() {
+		const other = get(opponentInfo);
+		if (other) {
+			this.friends.push({ ...other, friend: true });
+			localStorage.setItem('FriendPool.friends', JSON.stringify(this.friends));
+			opponentInfo.update((op) => {
+				if (op) op.friend = true;
+				return op;
+			});
+		}
 	}
 }

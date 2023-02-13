@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { currentConnection } from '$lib/api/connection';
-	import { opponentInfo, userInfo } from '$lib/api/FriendsPool';
+	import { FriendPool, opponentInfo, userInfo } from '$lib/api/FriendsPool';
 	import { randomUsername } from '$lib/api/RadomWords';
 	import Icon from '@iconify/svelte';
 
 	const focus = (e: HTMLInputElement) => e.focus();
 
 	async function generate(e: MouseEvent) {
+		if (!$userInfo) return;
+
 		$userInfo.username = 'loading';
 		editing = false;
 		$userInfo.username = await randomUsername();
@@ -20,26 +22,40 @@
 <svelte:body on:click={() => (editing = false)} />
 <div class="row" class:connected>
 	{#if connected}
-		{#if editing}
-			<div class="capsize-dosis-12 cell">
-				<input type="text" use:focus bind:value={$userInfo.username} />
-				<button on:click={generate}>
-					<Icon class="icon" icon="fluent:arrow-repeat-all-24-filled" />
-				</button>
-			</div>
-		{:else}
-			<div class="cell">
-				<div class="username" title="Edit" on:click|stopPropagation={() => (editing = true)}>
-					<p class="capsize-dosis-12">{$userInfo.username || 'Loading'}</p>
-					<Icon class="icon" icon="fluent:edit-28-filled" />
+		{#if $userInfo}
+			{#if editing}
+				<div class="capsize-dosis-12 cell">
+					<input type="text" use:focus bind:value={$userInfo.username} />
+					<button on:click={generate}>
+						<Icon class="icon" icon="fluent:arrow-repeat-all-24-filled" />
+					</button>
 				</div>
-			</div>
+			{:else}
+				<div class="cell">
+					<div class="username" title="Edit" on:click|stopPropagation={() => (editing = true)}>
+						<p class="capsize-dosis-12">{$userInfo.username || 'Loading'}</p>
+						<Icon class="icon" icon="fluent:edit-28-filled" />
+					</div>
+				</div>
+			{/if}
+		{:else}
+			<p class="capsize-dosis-12">Loading</p>
 		{/if}
 		<div class="cell">
-			<div class="username" title="Add friend">
-				<p class="capsize-dosis-12">{$opponentInfo.username || 'Loading'}</p>
-				<Icon class="icon" icon="fluent:people-add-24-filled" />
-			</div>
+			{#if $opponentInfo}
+				<div class="username" title="Add friend" on:click={FriendPool.askFriendship}>
+					<p class="capsize-dosis-12" class:underline={$opponentInfo.friend}>
+						{$opponentInfo.username || 'Loading'}
+					</p>
+					{#if !$opponentInfo.friend}
+						<Icon class="icon" icon="fluent:people-add-24-filled" />
+					{:else}
+						<Icon class="icon" icon="fluent:people-team-delete-24-filled" />
+					{/if}
+				</div>
+			{:else}
+				Loading
+			{/if}
 		</div>
 	{:else}
 		<a class="connect-btn" href="/start">
