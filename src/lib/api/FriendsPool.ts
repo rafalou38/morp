@@ -13,28 +13,34 @@ interface User {
 	uuid: string;
 	username: string | null;
 	friend?: boolean;
+	status?: 'offline' | 'online';
 }
 
+export const friendList = writable<User[]>([]);
 export const userInfo = writable<User | null>(null);
 export const opponentInfo = writable<User | null>(null);
 
 export class FriendPool {
 	static peer: PeerCls;
-	static friends: User[];
 	private static loaded = false;
 	static async Configure() {
 		if (this.loaded) return;
+		this.loaded = true;
 		await PeerLoaded;
 		if (!Peer) throw new Error('PeerJs not loaded');
 
 		const friendsRaw = localStorage.getItem('FriendPool.friends');
 		if (friendsRaw) {
-			this.friends = JSON.parse(friendsRaw);
-		} else {
-			this.friends = [];
+			friendList.set(
+				JSON.parse(friendsRaw).map((friend: User) => ({
+					...friend,
+					status: 'offline',
+				}))
+			);
 		}
 
 		userInfo.subscribe(this.save.bind(this));
+		friendList.subscribe(this.save.bind(this));
 		const uuid = localStorage.getItem('FriendPool.uuid') || nanoid();
 		const username = localStorage.getItem('FriendPool.username');
 		userInfo.set({
@@ -51,9 +57,46 @@ export class FriendPool {
 					}));
 			});
 
-		this.loaded = true;
-		const cc = get(currentConnection);
-		if (!cc) return;
+		if (uuid) {
+			console.log('Making peer', P2PId('friend', uuid));
+
+			const receiving = new Peer(P2PId('friend', uuid));
+
+			const tryConnect = (friendUUID: string) => {
+				console.log('Fetching', friendUUID);
+				const con = receiving.connect(P2PId('friend', friendUUID));
+
+				con.on('open', () => {
+					console.log('Success!', friendUUID);
+					friendList.update((old) =>
+						old.map((f) => {
+							if (f.uuid == friendUUID)
+								return {
+									...f,
+									status: 'online',
+								};
+							else return f;
+						})
+					);
+				});
+				con.on('error', (e) => console.log('error', e.toString()));
+			};
+
+			receiving.on('open', () => {
+				console.log('connection opened');
+
+				for (const friend of get(friendList)) {
+					tryConnect(friend.uuid);
+				}
+			});
+
+			receiving.on('error', (err) => {
+				const failedUUID = (err.toString() as string).match(/[a-zA-Z\d]{21}/)?.[0];
+				if (failedUUID) {
+					tryConnect(failedUUID);
+				}
+			});
+		}
 	}
 	static setupListeners(con: Connection) {
 		con.on('social.userInfo', ({ username, uuid }) => {
@@ -61,7 +104,7 @@ export class FriendPool {
 			opponentInfo.set({
 				username,
 				uuid,
-				friend: !!this.friends.find((user) => user.uuid == uuid),
+				friend: !!get(friendList).find((user) => user.uuid == uuid),
 			});
 		});
 		con.on('social.validateFriend', () => {
@@ -91,6 +134,8 @@ export class FriendPool {
 				localStorage.setItem('FriendPool.username', data.username);
 			}
 		}
+
+		localStorage.setItem('FriendPool.friends', JSON.stringify(get(friendList)));
 	}
 
 	static askFriendship() {
@@ -110,8 +155,7 @@ export class FriendPool {
 	private static addFriend() {
 		const other = get(opponentInfo);
 		if (other) {
-			this.friends.push({ ...other, friend: true });
-			localStorage.setItem('FriendPool.friends', JSON.stringify(this.friends));
+			friendList.update((old) => [...old, { ...other, friend: true }]);
 			opponentInfo.update((op) => {
 				if (op) op.friend = true;
 				return op;

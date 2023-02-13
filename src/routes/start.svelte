@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { FriendPool } from '$lib/api/FriendsPool';
+	import FriendList from '$lib/components/start/FriendList.svelte';
 	import JoinPopup from '$lib/components/start/JoinPopup.svelte';
 	import { randomCode } from '$lib/utils/gameCode';
 
@@ -44,4 +45,6 @@
 			Join
 		</button>
 	</div>
+
+	<FriendList />
 </div>
