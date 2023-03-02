@@ -13,22 +13,25 @@
 | Click Race                 | @rafalou38     |    ✅    |
 | Capture war                | @rafalou38     |    ✅    |
 | Battle ship                | @Aneyx         |    ✅    |
+| Puissance 4                | @rafalou38     |    ✅    |
 | Tafl                       | @johannesbeere |    ▶️    |
 | Shooter                    | @Aneyx         |    ▶️    |
 | Echec                      | @elboe-greese  |    ▶️    |
-| Puissance 4                | @rafalou38     |    ▶️    |
 | Jeu Dactylographie         | @ivaaan-mrl    |         |
+| Tank trouble               | @rafalou38     |    ▶️    |
 | Jeu des points d'Alexander |                |         |
 | Jeu de go                  |                |         |
 | Jeu de la taupe            |                |         |
 | Pong                       |                |         |
-| Tank trouble               |                |         |
 | Bomberman                  |                |         |
 | Age of war                 |                |         |
 | Tower Defense              |                |         |
 | Demineur                   |                |         |
 | Tetris duel                |                |         |
 | Advance wars               |                |         |
+| Shotakoe                   |                |         |
+| PacMan                     |                |         |
+| Mario vs DKKong            |                |         |
 
 
 ## Credits
