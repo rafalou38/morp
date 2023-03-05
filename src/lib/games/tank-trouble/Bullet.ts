@@ -73,7 +73,7 @@ export class Bullet {
         Bullet.bullets = Bullet.bullets.filter(b => b != this);
     }
     reDraw() {
-        if (Date.now() - this.born > 1000 * 20) {
+        if (Date.now() - this.born > 1000 * 10) {
             return this.destroy()
         }
         this.setSpeed();

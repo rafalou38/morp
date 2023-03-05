@@ -16,6 +16,7 @@
 	import { app, appSz, engine } from '$lib/games/tank-trouble/Stores';
 	import { Bullet } from '$lib/games/tank-trouble/Bullet';
 	import { Tank } from '$lib/games/tank-trouble/Tank';
+	import { Waiter } from '$lib/utils/time';
 
 	let container: N<HTMLDivElement>;
 
@@ -34,6 +35,8 @@
 		check(container, 'container');
 		check($engine, 'engine');
 
+		window.devicePixelRatio = 2;
+
 		$app = new Application({
 			resizeTo: container,
 			resolution: window.devicePixelRatio,
@@ -42,6 +45,12 @@
 			backgroundColor: '#181818',
 		});
 		container.appendChild($app.view as HTMLCanvasElement);
+
+		// const render = Render.create({
+		// 	element: document.body,
+		// 	engine: $engine,
+		// });
+		// Render.run(render);
 
 		cellWidth = maze.setupScene($appSz);
 
@@ -71,8 +80,17 @@
 
 		start();
 
+		let last = Date.now();
+		const fpsWait = Waiter(500);
 		function loop() {
 			if (!$app) return;
+
+			const dt = Date.now() - last;
+			last = Date.now();
+			if (fpsWait()) {
+				const fps = 1000 / dt;
+				fpsCounter.text = Math.round(fps);
+			}
 			// console.log($app.stage.width);
 
 			Bullet.reDraw();
