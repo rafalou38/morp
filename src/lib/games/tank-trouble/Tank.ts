@@ -30,7 +30,6 @@ export class Tank {
         this.sprite.height = size / 2;
         this.sprite.width = size / 2;
         this.sprite.position.set(x, y);
-        // this.sprite.rotation = this.direction;
 
         get(app)?.stage.addChild(this.sprite);
 
@@ -47,59 +46,27 @@ export class Tank {
          * INPUT
          */
         if (pressedKeys.has("d")) {
-            // this.direction += turnSpeed * DEG_TO_RAD;
-            // this.body.angle += turnSpeed * DEG_TO_RAD
-            // debugger
             Body.setAngle(this.body, this.body.angle + turnSpeed * DEG_TO_RAD)
-            // const vel = Vector2.from(this.body.velocity);
-            // const curspeed = vel.norm();
-
-            // vel.x = Math.cos(this.body.angle)
-            // vel.y = Math.sin(this.body.angle)
-            // vel.setNorm(curspeed)
-
-            // Body.setVelocity(this.body, vel)
-
-            // console.log(vel);
-
-
         }
         if (pressedKeys.has("a")) {
-            // this.direction += -turnSpeed * DEG_TO_RAD;
-            // this.body.angle += turnSpeed * DEG_TO_RAD
             Body.setAngle(this.body, this.body.angle - turnSpeed * DEG_TO_RAD)
         }
 
         const movement = new Vector2(Math.cos((this.body.angle - Math.PI / 2)), Math.sin((this.body.angle - Math.PI / 2)))
-        // console.log(movement);
         movement.setNorm(speed / 1000);
+        if (pressedKeys.has("w")) {
+            Body.applyForce(this.body, this.body.position, movement);
+        }
+        if (pressedKeys.has("s")) {
+            Body.applyForce(this.body, this.body.position, movement.scale(-1));
+        }
+
 
         if (pressedKeys.has(" ")) {
             pressedKeys.delete(" ");
-
-            new Bullet(Vector2.from(this.body.position).add(movement.setNorm(this.sprite.width * 0.6)), movement, 5);
+            new Bullet(Vector2.from(this.body.position).add(movement.setNorm(this.sprite.width * 0.5)), movement, 5);
         }
 
-
-        if (pressedKeys.has("w")) {
-            // this.x += movement.x;
-            // this.y += movement.y;
-            // this.body
-            Body.applyForce(this.body, this.body.position, movement);
-
-            // this.direction += 1;
-        }
-
-        if (pressedKeys.has("s")) {
-            Body.applyForce(this.body, this.body.position, movement.scale(-1));
-            // this.x -= movement.x;
-            // this.y -= movement.y;
-            // this.direction += 1;
-        }
-
-
-
-        // this.sprite.position.set(this.x, this.y);
         this.sprite.position.set(this.body.position.x, this.body.position.y);
         this.sprite.rotation = this.body.angle;
     }
