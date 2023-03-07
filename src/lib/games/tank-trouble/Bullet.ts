@@ -2,26 +2,31 @@ import { Vector2 } from "$lib/utils/math";
 import { get } from "svelte/store";
 import { app, engine } from "./Stores";
 import { check } from "$lib/utils/assert";
-import { Graphics } from "pixi.js";
+import { Graphics, Texture } from "pixi.js";
 import { Bodies, Body, Composite, Vector } from "matter-js";
+
+import { Emitter, upgradeConfig } from '@pixi/particle-emitter'
+import burstConfig from "$lib/configs/pixi/particles/emitter"
 
 
 
 export class Bullet {
     static bullets: Bullet[] = [];
-    static reDraw() {
-        this.bullets.forEach(b => b.reDraw());
+    static reDraw(dt: number) {
+        this.bullets.forEach(b => b.reDraw(dt));
     }
     body: Body;
     gr: Graphics;
     speed: number;
     born: number;
+    emitter: Emitter;
     constructor(pos: Vector2, dir: Vector2, speed: number) {
         const grStage = get(app)?.stage;
         const world = get(engine)?.world;
         check(grStage);
         check(world);
 
+        this.emitter = new Emitter(grStage, upgradeConfig(burstConfig, [Texture.from("/images/particles/smoke.png")]));
         this.born = Date.now();
 
         this.speed = speed;
@@ -68,13 +73,23 @@ export class Bullet {
         check(grStage);
         check(world);
 
+        this.emitter.updateSpawnPos(this.body.position.x, this.body.position.y);
+        this.emitter.playOnceAndDestroy(() => {
+            Bullet.bullets = Bullet.bullets.filter(b => b != this);
+        })
+
+        this.died = true
         Composite.remove(world, this.body);
         grStage.removeChild(this.gr);
-        Bullet.bullets = Bullet.bullets.filter(b => b != this);
     }
-    reDraw() {
-        if (Date.now() - this.born > 1000 * 10) {
-            return this.destroy()
+    died = false;
+    reDraw(dt: number) {
+        this.emitter.update(dt);
+        if (this.died) return;
+
+        if (Date.now() - this.born > 1000 * 5) {
+            this.destroy();
+            return;
         }
         this.setSpeed();
 

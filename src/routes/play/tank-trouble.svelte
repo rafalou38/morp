@@ -93,7 +93,7 @@
 			}
 			// console.log($app.stage.width);
 
-			Bullet.reDraw();
+			Bullet.reDraw(dt);
 			myTank.update();
 			requestAnimationFrame(loop);
 		}

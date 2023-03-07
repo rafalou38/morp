@@ -3,6 +3,9 @@
 	"compilerOptions": {
 		"strictNullChecks": true,
 		"target": "es2021",
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": true
+
+		//  "esModueInterop": true
 	}
 }
