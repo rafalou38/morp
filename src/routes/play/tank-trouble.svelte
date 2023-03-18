@@ -4,8 +4,7 @@
 	import { Maze } from '$lib/games/tank-trouble/Maze';
 	import type { N } from '$lib/types/utils';
 	import { check } from '$lib/utils/assert';
-	import { shuffle, Vector2 } from '$lib/utils/math';
-
+	
 	import { onDestroy, onMount } from 'svelte';
 
 	import { Application, Text, Graphics, Container, DisplayObject, settings } from 'pixi.js';
@@ -22,7 +21,7 @@
 
 	type GameState = 'waiting' | 'playing' | 'lost' | 'won';
 	let gameState: GameState = 'waiting';
-	const maze = new Maze(5, 5, 5);
+	const maze = new Maze(6 , 6 , 3);
 	let cellWidth = 0;
 
 	$engine = Engine.create({ gravity: { scale: 0 }, positionIterations: 20 });

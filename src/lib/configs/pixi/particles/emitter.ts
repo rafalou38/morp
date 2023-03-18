@@ -6,8 +6,8 @@ export default {
 		"end": 0
 	},
 	"scale": {
-		"start": 0.25,
-		"end": 0.25,
+		"start": 0.125,
+		"end": 0.125,
 		"minimumScaleMultiplier": 1
 	},
 	"color": {
@@ -39,15 +39,15 @@ export default {
 	},
 	"blendMode": "normal",
 	"frequency": 1,
-	"emitterLifetime": 2.5,
-	"maxParticles": 10,
+	"emitterLifetime": 2,
+	"maxParticles": 25,
 	"pos": {
 		"x": 0,
 		"y": 0
 	},
 	"addAtBack": false,
 	"spawnType": "burst",
-	"particlesPerWave": 10,
+	"particlesPerWave": 25,
 	"particleSpacing": 0,
 	"angleStart": 0,
 } as EmitterConfigV1;

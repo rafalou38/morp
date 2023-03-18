@@ -87,7 +87,7 @@ export class Bullet {
         this.emitter.update(dt);
         if (this.died) return;
 
-        if (Date.now() - this.born > 1000 * 5) {
+        if (Date.now() - this.born > 1000 * 10) {
             this.destroy();
             return;
         }
