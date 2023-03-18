@@ -1,15 +1,15 @@
-import type { EmitterConfigV3,  } from "@pixi/particle-emitter";
+import type { EmitterConfigV3, } from "@pixi/particle-emitter";
 import { Texture } from "pixi.js";
 
-export default   {
+export default (color: "red" | "blue"): EmitterConfigV3 => ({
     lifetime: {
-        min: 0.5,
-        max: 0.5
+        min: 2,
+        max: 3
     },
-    frequency: 0.008,
+    frequency: 0.05,
     spawnChance: 1,
-    particlesPerWave: 1,
-    emitterLifetime: 0.31,
+    particlesPerWave: 5,
+    emitterLifetime: 0.1,
     maxParticles: 1000,
     pos: {
         x: 0,
@@ -35,37 +35,9 @@ export default   {
             }
         },
         {
-            type: 'scale',
+            type: 'colorStatic',
             config: {
-                scale: {
-                    list: [
-                        {
-                            value: 1,
-                            time: 0
-                        },
-                        {
-                            value: 0.3,
-                            time: 1
-                        }
-                    ],
-                },
-            }
-        },
-        {
-            type: 'color',
-            config: {
-                color: {
-                    list: [
-                        {
-                            value: "fb1010",
-                            time: 0
-                        },
-                        {
-                            value: "f5b830",
-                            time: 1
-                        }
-                    ],
-                },
+                color: color == "red" ? "c04141" : "2497c9"
             }
         },
         {
@@ -74,11 +46,15 @@ export default   {
                 speed: {
                     list: [
                         {
-                            value: 200,
+                            value: 40,
                             time: 0
                         },
                         {
-                            value: 100,
+                            value: 20,
+                            time: 0.75
+                        },
+                        {
+                            value: 10,
                             time: 1
                         }
                     ],
@@ -100,15 +76,22 @@ export default   {
                 data: {
                     x: 0,
                     y: 0,
-                    radius: 10
+                    radius: 30,
+                    innerRadius: 5
                 }
             }
         },
         {
-            type: 'textureSingle',
+            type: 'textureRandom',
             config: {
-                texture: Texture.from('image.jpg')
+                textures: [
+                    "/images/particles/chunks/01.png",
+                    "/images/particles/chunks/02.png",
+                    "/images/particles/chunks/03.png",
+                    "/images/particles/chunks/04.png",
+                    "/images/particles/chunks/05.png"
+                ],
             }
         }
     ],
-} as EmitterConfigV3;
+});

@@ -5,8 +5,10 @@ import { get } from "svelte/store";
 import { pressedKeys } from "$lib/utils/input";
 import { Vector2 } from "$lib/utils/math";
 import { Bullet } from "./Bullet";
-import { Bodies, Body, Composite } from "matter-js";
+import Matter, { Bodies, Body, Composite, Detector, Events, World } from "matter-js";
 import { check } from "$lib/utils/assert";
+import { Emitter } from "@pixi/particle-emitter";
+import explosion from "$lib/configs/pixi/particles/explosion";
 
 
 const TANK_SPEED = 2.75;
@@ -23,10 +25,14 @@ export class Tank {
     sprite: Sprite;
     body: Body;
     ammo = MAX_AMMO;
+    emitter: Emitter;
     realoadTimout: NodeJS.Timeout | null;
     constructor(x: number, y: number, size: number, owner: Owner) {
+        const appT = get(app);
+        const engT = get(engine);
+        check(appT, "App should be valid (tank)");
+        check(engT, "Engine should be valid (tank)");
         this.owner = owner;
-
 
         if (owner == "self") {
             this.sprite = Sprite.from("/images/tank.png");
@@ -38,13 +44,34 @@ export class Tank {
         this.sprite.width = size / 2;
         this.sprite.position.set(x, y);
 
-        get(app)?.stage.addChild(this.sprite);
+        appT.stage.addChild(this.sprite);
+
+        this.emitter = new Emitter(appT.stage, explosion(owner == "self" ? "blue" : "red"));
+
+        Events.on(engT, "collisionStart", (ev) => {
+            const pair = ev.pairs[0];
+            if ((pair.bodyA.label == "tank-" + owner && pair.bodyB.label == "bullet") || (pair.bodyB.label == "tank-" + owner && pair.bodyA.label == "bullet")) {
+                console.log("DIE");
+
+                this.destroy();
 
 
-        this.body = Bodies.rectangle(this.sprite.position.x - this.sprite.width / 4, this.sprite.position.y - this.sprite.height / 4, this.sprite.width, this.sprite.height, { restitution: 0, friction: 0, frictionAir: 0.1 })
+                Composite.remove(engT.world, pair.bodyA);
+                pair.bodyA.position.x = 10000;
+                Composite.remove(engT.world, pair.bodyB);
+                pair.bodyB.position.x = 10000;
+            }
+        })
+
+        this.body = Bodies.rectangle(this.sprite.position.x - this.sprite.width / 4, this.sprite.position.y - this.sprite.height / 4, this.sprite.width, this.sprite.height, { restitution: 0, friction: 0, frictionAir: 0.1, label: "tank-" + owner })
         const world = get(engine)?.world;
         check(world)
         Composite.add(world, this.body);
+    }
+
+    destroy() {
+        this.emitter.spawnPos.set(this.body.position.x, this.body.position.y)
+        this.emitter.autoUpdate = true;
     }
 
     shoot(dir: Vector2) {
@@ -65,7 +92,6 @@ export class Tank {
     }
 
     update() {
-
         /**
          * INPUT
          */

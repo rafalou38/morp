@@ -47,7 +47,8 @@ export class Bullet {
             friction: 0,
             frictionStatic: 1,
             inertia: Infinity,
-            restitution: 1
+            restitution: 1,
+            label: "bullet"
         });
 
         Composite.add(world, this.body);
