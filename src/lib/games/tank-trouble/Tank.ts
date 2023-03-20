@@ -1,6 +1,7 @@
 import { DEG_TO_RAD, Sprite, TilingSprite } from "pixi.js";
+import { Sound } from "@pixi/sound";
 import type { Owner } from "../capture/utils";
-import { app, engine } from "./Stores";
+import { app, engine, factor } from "./Stores";
 import { get } from "svelte/store";
 import { pressedKeys } from "$lib/utils/input";
 import { Vector2 } from "$lib/utils/math";
@@ -11,8 +12,8 @@ import { Emitter } from "@pixi/particle-emitter";
 import explosion from "$lib/configs/pixi/particles/explosion";
 
 
-const TANK_SPEED = 2.75;
-const AMMO_SPEED = 3.5;
+const TANK_SPEED = 4;
+const AMMO_SPEED = 5;
 const turnSpeed = 3;
 
 const RELOAD_DELAY = 3;
@@ -20,6 +21,20 @@ const MAX_AMMO = 4;
 
 
 export class Tank {
+    static sounds: { shoot: Sound; destroy: Sound; ride: Sound; };
+    static loadSounds() {
+        this.sounds = {
+            shoot: Sound.from("/audios/weapons/toy_cannon_shot.wav"),
+            destroy: Sound.from("/audios/weapons/explosion1.wav"),
+            ride: Sound.from("/audios/car.wav"),
+        }
+
+        this.sounds.shoot.volume = 0.5;
+        this.sounds.destroy.volume = 0.1;
+        this.sounds.ride.loop = true;
+        this.sounds.ride.volume = 0;
+    }
+
     owner: string;
 
     sprite: Sprite;
@@ -27,6 +42,7 @@ export class Tank {
     ammo = MAX_AMMO;
     emitter: Emitter;
     realoadTimout: NodeJS.Timeout | null;
+    alive = true;
     constructor(x: number, y: number, size: number, owner: Owner) {
         const appT = get(app);
         const engT = get(engine);
@@ -40,9 +56,8 @@ export class Tank {
             this.sprite = Sprite.from("/images/tank-red.png");
         }
         this.sprite.anchor.set(0.5);
-        this.sprite.height = size / 2;
-        this.sprite.width = size / 2;
-        this.sprite.position.set(x, y);
+        this.sprite.height = (size / 2) * get(factor);
+        this.sprite.width = (size / 2) * get(factor);
 
         appT.stage.addChild(this.sprite);
 
@@ -55,23 +70,35 @@ export class Tank {
 
                 this.destroy();
 
-
-                Composite.remove(engT.world, pair.bodyA);
-                pair.bodyA.position.x = 10000;
-                Composite.remove(engT.world, pair.bodyB);
-                pair.bodyB.position.x = 10000;
+                const bullet = Bullet.bullets.find(b => b.body == pair.bodyA || b.body == pair.bodyB)
+                if (bullet) {
+                    bullet.destroy(true);
+                }
             }
         })
 
-        this.body = Bodies.rectangle(this.sprite.position.x - this.sprite.width / 4, this.sprite.position.y - this.sprite.height / 4, this.sprite.width, this.sprite.height, { restitution: 0, friction: 0, frictionAir: 0.1, label: "tank-" + owner })
+        this.body = Bodies.rectangle(
+            x, y,
+            size / 2, size / 2,
+            { restitution: 0, friction: 0, frictionAir: 0.1, label: "tank-" + owner })
         const world = get(engine)?.world;
         check(world)
         Composite.add(world, this.body);
     }
 
     destroy() {
-        this.emitter.spawnPos.set(this.body.position.x, this.body.position.y)
+        const engT = get(engine);
+        check(engT, "eng should be valid (tank)");
+
+        Tank.sounds.destroy.play();
+        // Composite.remove(engT.world, this.body);
+        // this.sprite.parent.removeChild(this.sprite);
+        this.emitter.spawnPos.set(this.body.position.x * get(factor), this.body.position.y * get(factor))
         this.emitter.autoUpdate = true;
+        this.body.position.x = 1000;
+        this.update();
+        this.alive = false;
+        Tank.sounds.ride.volume = 0;
     }
 
     shoot(dir: Vector2) {
@@ -84,32 +111,53 @@ export class Tank {
         };
 
         this.ammo--;
+        Tank.sounds.shoot.play();
+        // this.body.
+        Body.applyForce(this.body, this.body.position, dir.setNorm((-TANK_SPEED * 2) / 1000 / 1000))
         new Bullet(
-            Vector2.from(this.body.position).add(dir.setNorm(this.sprite.width * 0.6)),
+            Vector2.from(this.body.position).add(dir.setNorm((this.sprite.height * 0.6) / get(factor))),
             dir,
             AMMO_SPEED
         );
     }
 
     update() {
+        if (!this.alive) return;
+        const dPressed = pressedKeys.has("d");
+        const aPressed = pressedKeys.has("a");
+        const wPressed = pressedKeys.has("w");
+        const sPressed = pressedKeys.has("s");
         /**
          * INPUT
          */
-        if (pressedKeys.has("d")) {
+        if (dPressed) {
             Body.setAngle(this.body, this.body.angle + turnSpeed * DEG_TO_RAD)
         }
-        if (pressedKeys.has("q")) {
+        if (aPressed) {
             Body.setAngle(this.body, this.body.angle - turnSpeed * DEG_TO_RAD)
         }
 
-        const movement = new Vector2(Math.cos((this.body.angle - Math.PI / 2)), Math.sin((this.body.angle - Math.PI / 2)))
-        movement.setNorm(TANK_SPEED / 1000);
-        if (pressedKeys.has("z")) {
+        let movement = new Vector2(Math.cos((this.body.angle - Math.PI / 2)), Math.sin((this.body.angle - Math.PI / 2)))
+        movement = movement.setNorm(TANK_SPEED / 1000 / 1000);
+        if (wPressed) {
             Body.applyForce(this.body, this.body.position, movement);
+            // console.log(this.body.speed);
         }
-        if (pressedKeys.has("s")) {
+        if (sPressed) {
             Body.applyForce(this.body, this.body.position, movement.scale(-1));
         }
+
+        // if (dPressed ||
+        //     aPressed ||
+        //     wPressed ||
+        //     sPressed) {
+        if (!Tank.sounds.ride.isPlaying) {
+            Tank.sounds.ride.play();
+        }
+        // }
+
+        // Tank.sounds.ride.volume = Math.min(this.body.speed / 2, 0.1);
+
 
 
         if (pressedKeys.has(" ")) {
@@ -117,7 +165,7 @@ export class Tank {
             this.shoot(movement);
         }
 
-        this.sprite.position.set(this.body.position.x, this.body.position.y);
+        this.sprite.position.set(this.body.position.x * get(factor), this.body.position.y * get(factor));
         this.sprite.rotation = this.body.angle;
     }
 }

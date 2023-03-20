@@ -46,18 +46,18 @@ export class Vector2 {
 
 	setNorm(length: number) {
 		const factor = length / this.norm();
-		this.scale(factor);
-		return this
+		// this.scale(factor);
+		return this.scale(factor);
 	}
 
 	dot(v: Vector2): number {
 		return this.x * v.x + this.y * v.y;
 	}
 	scale(k: number): Vector2 {
-		this.x *= k;
-		this.y *= k;
-		return this;
-		// return new Vector2(this.x * k, this.y * k);
+		// this.x *= k;
+		// this.y *= k;
+		// return this;
+		return new Vector2(this.x * k, this.y * k);
 	}
 	add(v: Vector2) {
 		this.x += v.x;

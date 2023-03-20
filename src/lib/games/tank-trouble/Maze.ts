@@ -2,7 +2,7 @@ import { shuffle } from "$lib/utils/math";
 import { Bodies, Body, Composite, Engine } from "matter-js";
 import { Graphics, Rectangle, type Container } from "pixi.js";
 import { get } from "svelte/store";
-import { app, engine } from "./Stores";
+import { app, engine, factor } from "./Stores";
 import { check } from "$lib/utils/assert";
 
 
@@ -25,14 +25,14 @@ export class Maze {
     }
 
 
-    setupScene(sz: number) {
+    setupScene() {
         const grStage = get(app)?.stage;
         const world = get(engine)?.world;
         check(grStage);
         check(world);
 
-        const cw = sz / this.width;
-        const ch = sz / this.height;
+        const cw = 100 / this.width;
+        const ch = 100 / this.height;
         if (!this.gr) {
             this.gr = new Graphics();
             grStage.addChild(this.gr);
@@ -52,12 +52,19 @@ export class Maze {
                 friction: 0,
             });
             Composite.add(world, rect);
-            this.gr.drawRect(x, y, w, h)
+            console.log(get(factor));
+
+            this.gr.drawRect(
+                x * get(factor),
+                y * get(factor),
+                w * get(factor),
+                h * get(factor)
+            )
         }
         for (let x = 0; x < this.width; x++) {
             for (let y = 0; y < this.height; y++) {
                 const cell = this.grid[x][y];
-                const width = 6;
+                const width = this.width / 7;
 
 
                 if (x == 0)
@@ -74,31 +81,6 @@ export class Maze {
         this.gr.endFill();
 
         return cw;
-    }
-
-    /** @deprecated */
-    debugDraw(gr: Graphics, sz: number) {
-        const cw = sz / this.width;
-        const ch = sz / this.height;
-        for (let x = 0; x < this.width; x++) {
-            for (let y = 0; y < this.height; y++) {
-                const cell = this.grid[x][y];
-
-                if (cell.l) {
-                    gr.lineStyle(2, 0xffffff)
-                        .moveTo(cw * x, ch * y).
-                        lineTo(cw * x, ch * y + ch)
-                }
-                if (cell.t) {
-                    gr.lineStyle(2, 0xffffff)
-                        .moveTo(cw * x, ch * y).
-                        lineTo(cw * x + cw, ch * y)
-
-                }
-
-            }
-        }
-
     }
 
     genMaze(holes: number) {

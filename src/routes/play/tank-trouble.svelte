@@ -4,7 +4,7 @@
 	import { Maze } from '$lib/games/tank-trouble/Maze';
 	import type { N } from '$lib/types/utils';
 	import { check } from '$lib/utils/assert';
-	
+
 	import { onDestroy, onMount } from 'svelte';
 
 	import { Application, Text, Graphics, Container, DisplayObject, settings } from 'pixi.js';
@@ -12,7 +12,7 @@
 	/* @ts-ignore */
 	Resolver._restingThresh = 0.001;
 
-	import { app, appSz, engine } from '$lib/games/tank-trouble/Stores';
+	import { app, appSz, engine, factor } from '$lib/games/tank-trouble/Stores';
 	import { Bullet } from '$lib/games/tank-trouble/Bullet';
 	import { Tank } from '$lib/games/tank-trouble/Tank';
 	import { Waiter } from '$lib/utils/time';
@@ -21,7 +21,7 @@
 
 	type GameState = 'waiting' | 'playing' | 'lost' | 'won';
 	let gameState: GameState = 'waiting';
-	const maze = new Maze(6 , 6 , 3);
+	const maze = new Maze(6, 6, 3);
 	let cellWidth = 0;
 
 	$engine = Engine.create({ gravity: { scale: 0 }, positionIterations: 20 });
@@ -36,6 +36,9 @@
 
 		window.devicePixelRatio = 2;
 
+		Tank.loadSounds();
+		Bullet.loadSounds();
+
 		$app = new Application({
 			resizeTo: container,
 			resolution: window.devicePixelRatio,
@@ -45,13 +48,14 @@
 		});
 		container.appendChild($app.view as HTMLCanvasElement);
 
+		$factor = $app.view.width / window.devicePixelRatio / 100;
+
 		// const render = Render.create({
 		// 	element: document.body,
 		// 	engine: $engine,
 		// });
 		// Render.run(render);
-
-		cellWidth = maze.setupScene($appSz);
+		cellWidth = maze.setupScene();
 
 		myTank = new Tank(cellWidth / 2, cellWidth / 2, cellWidth * 0.75, 'self');
 

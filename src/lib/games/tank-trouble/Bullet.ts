@@ -1,16 +1,27 @@
 import { Vector2 } from "$lib/utils/math";
 import { get } from "svelte/store";
-import { app, engine } from "./Stores";
+import { app, engine, factor } from "./Stores";
 import { check } from "$lib/utils/assert";
 import { Graphics, Texture } from "pixi.js";
-import { Bodies, Body, Composite, Vector } from "matter-js";
+import { Bodies, Body, Composite, Events, Vector } from "matter-js";
 
 import { Emitter, upgradeConfig } from '@pixi/particle-emitter'
 import burstConfig from "$lib/configs/pixi/particles/emitter"
+import { Sound } from "@pixi/sound";
 
 
 
 export class Bullet {
+    static sounds: { bounce: Sound; fade: Sound; };
+    static loadSounds() {
+        this.sounds = {
+            bounce: Sound.from("/audios/hit.wav"),
+            fade: Sound.from("/audios/poof-in-cloud.mp3"),
+        }
+
+        this.sounds.bounce.volume = 0.5;
+        this.sounds.fade.volume = 0.7;
+    }
     static bullets: Bullet[] = [];
     static reDraw(dt: number) {
         this.bullets.forEach(b => b.reDraw(dt));
@@ -22,11 +33,13 @@ export class Bullet {
     emitter: Emitter;
     constructor(pos: Vector2, dir: Vector2, speed: number) {
         const grStage = get(app)?.stage;
-        const world = get(engine)?.world;
+        const eng = get(engine);
         check(grStage);
-        check(world);
+        check(eng);
+        const world = eng?.world;
 
-        this.emitter = new Emitter(grStage, upgradeConfig(burstConfig, [Texture.from("/images/particles/smoke.png")]));
+
+        this.emitter = new Emitter(grStage, upgradeConfig(burstConfig(), [Texture.from("/images/particles/smoke.png")]));
         this.born = Date.now();
 
         this.speed = speed;
@@ -36,48 +49,59 @@ export class Bullet {
 
 
         this.gr.beginFill(0xffeeee);
-        this.gr.drawCircle(0, 0, 5);
+        this.gr.drawCircle(0, 0, 0.5 * get(factor));
         this.gr.endFill();
 
-        this.gr.position.set(pos.x, pos.y);
 
-
-        this.body = Bodies.circle(pos.x, pos.y, 5, {
-            frictionAir: 0,
+        this.body = Bodies.circle(pos.x, pos.y, 0.5, {
             friction: 0,
-            frictionStatic: 1,
-            inertia: Infinity,
+            frictionAir: 0,
+
+            // frictionAir: 0.1,
+            // friction: 0,
+            // frictionStatic: 1,
+            // inertia: Infinity,
             restitution: 1,
             label: "bullet"
         });
 
+        Events.on(eng, "collisionStart", (ev) => {
+            const pair = ev.pairs[0];
+            if ((pair.bodyA == this.body || pair.bodyB == this.body)) {
+                Bullet.sounds.bounce.play();
+            }
+        })
+
+
         Composite.add(world, this.body);
-        dir.setNorm(this.speed);
-        // console.log(dir);
+        dir = dir.setNorm(this.speed / 10);
 
-
-        // Body.applyForce(this.body, pos, dir);
         Body.setVelocity(this.body, dir);
-        // this.setSpeed();
+        this.setSpeed();
 
         Bullet.bullets.push(this);
     }
 
     private setSpeed() {
-        const nv = Vector2.from(this.body.velocity).setNorm(this.speed);
+        const nv = Vector2.from(this.body.velocity).setNorm(this.speed / 10);
         Body.setVelocity(this.body, nv);
     }
 
-    destroy() {
+    destroy(hit = false) {
         const grStage = get(app)?.stage;
         const world = get(engine)?.world;
         check(grStage);
         check(world);
 
-        this.emitter.updateSpawnPos(this.body.position.x, this.body.position.y);
-        this.emitter.playOnceAndDestroy(() => {
-            Bullet.bullets = Bullet.bullets.filter(b => b != this);
-        })
+
+        if (!hit) {
+            this.emitter.updateSpawnPos(this.body.position.x * get(factor), this.body.position.y * get(factor));
+            this.emitter.playOnceAndDestroy(() => {
+                Bullet.bullets = Bullet.bullets.filter(b => b != this);
+            })
+
+            Bullet.sounds.fade.play();
+        }
 
         this.died = true
         Composite.remove(world, this.body);
@@ -94,6 +118,6 @@ export class Bullet {
         }
         this.setSpeed();
 
-        this.gr.position.set(this.body.position.x, this.body.position.y);
+        this.gr.position.set(this.body.position.x * get(factor), this.body.position.y * get(factor));
     }
 }

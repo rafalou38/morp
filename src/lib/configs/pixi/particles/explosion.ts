@@ -1,5 +1,7 @@
+import { factor } from "$lib/games/tank-trouble/Stores";
 import type { EmitterConfigV3, } from "@pixi/particle-emitter";
 import { Texture } from "pixi.js";
+import { get } from "svelte/store";
 
 export default (color: "red" | "blue"): EmitterConfigV3 => ({
     lifetime: {
@@ -8,7 +10,7 @@ export default (color: "red" | "blue"): EmitterConfigV3 => ({
     },
     frequency: 0.05,
     spawnChance: 1,
-    particlesPerWave: 5,
+    particlesPerWave: 8,
     emitterLifetime: 0.1,
     maxParticles: 1000,
     pos: {
@@ -32,6 +34,13 @@ export default (color: "red" | "blue"): EmitterConfigV3 => ({
                         }
                     ],
                 },
+            }
+        },
+        {
+            type: 'scaleStatic',
+            config: {
+                min: 0.15 * get(factor),
+                max: 0.15 * get(factor),
             }
         },
         {
@@ -76,8 +85,8 @@ export default (color: "red" | "blue"): EmitterConfigV3 => ({
                 data: {
                     x: 0,
                     y: 0,
-                    radius: 30,
-                    innerRadius: 5
+                    radius: 2 * get(factor),
+                    innerRadius: 0.5 * get(factor)
                 }
             }
         },

@@ -34,6 +34,7 @@
 ## Credits
 
 
+### Images
 
 | [![Image][GrassImg] <br/> babysofja][grassLink] | [![Image][tankImg] <br/> irmirx][tankLink] |       |
 | :---------------------------------------------: | :----------------------------------------: | :---: |
@@ -44,3 +45,11 @@
 [tankLink]: https://www.freepik.com/free-vector/seamless-textured-grass-natural-grass-pattern_11930799.htm#query=grass%20texture&position=11&from_view=keyword
 [tankImg]: /static/images/tank.png
 <!-- [tankImg]: https://opengameart.org/sites/default/files/styles/medium/public/preview_344.png -->
+
+### Sons:
+
+- https://freesound.org/people/Herkules92/sounds/512217/
+- https://freesound.org/people/worthahep88/sounds/319229/
+- https://freesound.org/people/ReadeOnly/packs/11806/
+- Sonniss.com - GDC 2023 - Game Audio Bundle
+  - VEHTruck_Unimog ONBOARD Steady 2400 rpm EXHAUST_DRCA_UNIM_MKH8040
