@@ -50,6 +50,11 @@ export class Vector2 {
 		return this.scale(factor);
 	}
 
+	lerp(target: Vector2, n: number) {
+		const self = this.copy();
+		return self.add(self.to(target).scale(n));
+	}
+
 	dot(v: Vector2): number {
 		return this.x * v.x + this.y * v.y;
 	}

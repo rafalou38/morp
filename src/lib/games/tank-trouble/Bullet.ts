@@ -8,6 +8,7 @@ import { Bodies, Body, Composite, Events, Vector } from "matter-js";
 import { Emitter, upgradeConfig } from '@pixi/particle-emitter'
 import burstConfig from "$lib/configs/pixi/particles/emitter"
 import { Sound } from "@pixi/sound";
+import { currentConnection } from "$lib/api/connection";
 
 
 
@@ -26,18 +27,23 @@ export class Bullet {
     static reDraw(dt: number) {
         this.bullets.forEach(b => b.reDraw(dt));
     }
+
+    static reset() {
+        this.bullets.forEach(b => b.destroy(true));
+    }
+
+
     body: Body;
     gr: Graphics;
     speed: number;
     born: number;
     emitter: Emitter;
-    constructor(pos: Vector2, dir: Vector2, speed: number) {
+    constructor(pos: Vector2, dir: Vector2, speed: number, remote = false) {
         const grStage = get(app)?.stage;
         const eng = get(engine);
         check(grStage);
         check(eng);
         const world = eng?.world;
-
 
         this.emitter = new Emitter(grStage, upgradeConfig(burstConfig(), [Texture.from("/images/particles/smoke.png")]));
         this.born = Date.now();
@@ -56,11 +62,6 @@ export class Bullet {
         this.body = Bodies.circle(pos.x, pos.y, 0.5, {
             friction: 0,
             frictionAir: 0,
-
-            // frictionAir: 0.1,
-            // friction: 0,
-            // frictionStatic: 1,
-            // inertia: Infinity,
             restitution: 1,
             label: "bullet"
         });
@@ -80,6 +81,9 @@ export class Bullet {
         this.setSpeed();
 
         Bullet.bullets.push(this);
+
+        if (!remote)
+            get(currentConnection)?.send({ type: "tank-trouble.bullet", pos, dir, speed })
     }
 
     private setSpeed() {

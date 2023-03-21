@@ -8,7 +8,7 @@
 	import { onDestroy, onMount } from 'svelte';
 
 	import { Application, Text, Graphics, Container, DisplayObject, settings } from 'pixi.js';
-	import { Bodies, Composite, Engine, Render, Resolver, Runner } from 'matter-js';
+	import { Bodies, Body, Composite, Engine, Render, Resolver, Runner } from 'matter-js';
 	/* @ts-ignore */
 	Resolver._restingThresh = 0.001;
 
@@ -16,19 +16,25 @@
 	import { Bullet } from '$lib/games/tank-trouble/Bullet';
 	import { Tank } from '$lib/games/tank-trouble/Tank';
 	import { Waiter } from '$lib/utils/time';
+	import { Vector2 } from '$lib/utils/math';
 
 	let container: N<HTMLDivElement>;
 
+	const MAZE_WIDTH = 6;
+	const MAZE_HEIGHT = 6;
+	const MAZE_HOLES = 5;
+
+	let intervals: NodeJS.Timeout[] = [];
+
 	type GameState = 'waiting' | 'playing' | 'lost' | 'won';
 	let gameState: GameState = 'waiting';
-	const maze = new Maze(6, 6, 3);
-	let cellWidth = 0;
 
 	$engine = Engine.create({ gravity: { scale: 0 }, positionIterations: 20 });
 	const runner = Runner.create({});
 	Runner.run(runner, $engine);
 
 	let myTank: Tank;
+	let hisTank: Tank;
 
 	onMount(async () => {
 		check(container, 'container');
@@ -55,9 +61,7 @@
 		// 	engine: $engine,
 		// });
 		// Render.run(render);
-		cellWidth = maze.setupScene();
-
-		myTank = new Tank(cellWidth / 2, cellWidth / 2, cellWidth * 0.75, 'self');
+		let maze: Maze | undefined;
 
 		// FPS
 		const fpsCounter = new Text('60', {
@@ -71,18 +75,6 @@
 		fpsCounter.position.set(-1, -5);
 		$app.stage.addChild(fpsCounter);
 
-		function start() {
-			if (gameState != 'waiting') return;
-			check($app);
-			check($engine);
-
-			console.log('[tank-trouble] Game started');
-
-			gameState = 'playing';
-		}
-
-		start();
-
 		let last = Date.now();
 		const fpsWait = Waiter(500);
 		function loop() {
@@ -94,18 +86,78 @@
 				const fps = 1000 / dt;
 				fpsCounter.text = Math.round(fps);
 			}
-			// console.log($app.stage.width);
 
-			Bullet.reDraw(dt);
-			myTank.update();
+			if (gameState == 'playing') {
+				Bullet.reDraw(dt);
+				myTank.update();
+				hisTank.update();
+			}
 			requestAnimationFrame(loop);
 		}
 		requestAnimationFrame(loop);
+
+		intervals.push(
+			setInterval(() => {
+				if (myTank) {
+					myTank.sendPos();
+				}
+			}, 250)
+		);
+
+		function start() {
+			if (gameState != 'waiting') return;
+			check($app);
+			check($engine);
+
+			console.log('[tank-trouble] Game started');
+			myTank.reset();
+			hisTank.reset();
+			Bullet.reset();
+
+			gameState = 'playing';
+		}
+
+		if ($currentConnection?.isHost) {
+			maze = new Maze(MAZE_WIDTH, MAZE_HEIGHT, MAZE_HOLES);
+			let cellWidth = maze.setupScene();
+
+			myTank = new Tank(cellWidth / 2, cellWidth / 2, cellWidth * 0.75, 'self');
+			hisTank = new Tank(100 - cellWidth / 2, 100 - cellWidth / 2, cellWidth * 0.75, 'other');
+
+			$currentConnection.send({
+				type: 'tank-trouble.reset',
+				grid: maze.grid,
+				me: myTank.initialPos,
+				you: hisTank.initialPos,
+			});
+			start();
+		}
+
+		$currentConnection?.on('tank-trouble.reset', ({ grid, me: him, you: me }) => {
+			maze = new Maze(MAZE_WIDTH, MAZE_HEIGHT, MAZE_HOLES, grid);
+			let cellWidth = maze.setupScene();
+			myTank = new Tank(me.x, me.y, cellWidth * 0.75, 'self');
+			hisTank = new Tank(him.x, him.y, cellWidth * 0.75, 'other');
+			start();
+			// sendPos();
+		});
+		$currentConnection?.on('tank-trouble.position', ({ pos, angle }) => {
+			if (!hisTank) return;
+			hisTank.targetPosition = pos;
+			hisTank.targetAngle = angle;
+		});
+
+		// get(currentConnection)?.send({ type: "tank-trouble.bullet", pos, dir, speed })
+		$currentConnection?.on('tank-trouble.bullet', ({ pos, dir, speed }) => {
+			new Bullet(Vector2.from(pos), Vector2.from(dir), speed, true);
+		});
 	});
 
 	function handleClick(e: MouseEvent) {}
 
 	onDestroy(() => {
+		intervals.forEach((i) => clearInterval(i));
+		intervals = [];
 		if ($app) {
 			$app.destroy();
 			$app = null;

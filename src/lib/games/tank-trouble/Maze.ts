@@ -6,22 +6,28 @@ import { app, engine, factor } from "./Stores";
 import { check } from "$lib/utils/assert";
 
 
+export type MazeGrid = {
+    t: boolean;
+    r: boolean;
+    l: boolean;
+    b: boolean;
+    v: boolean;
+}[][]
 export class Maze {
-    grid: {
-        t: boolean;
-        r: boolean;
-        l: boolean;
-        b: boolean;
-        v: boolean;
-    }[][] = [];
+    grid: MazeGrid = [];
     width: number;
     height: number;
     gr: Graphics;
-    constructor(w: number, h: number, holes: number) {
+
+    constructor(w: number, h: number, holes: number, grid?: MazeGrid) {
         this.width = w;
         this.height = h;
 
-        this.genMaze(holes);
+        if (grid) {
+            this.grid = grid;
+        } else {
+            this.genMaze(holes);
+        }
     }
 
 
@@ -107,6 +113,7 @@ export class Maze {
         const history: number[][] = [];
         let x = 0,
             y = 0;
+        // eslint-disable-next-line no-constant-condition
         while (true) {
             step: {
                 this.grid[x][y].v = true;
