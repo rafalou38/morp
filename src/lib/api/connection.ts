@@ -101,7 +101,7 @@ export class Connection {
 		console.log('[P2P] Disconnected from peer');
 	}
 	private handleData(data: p2pPayload): void {
-		// console.log('[P2P] Received data', data);
+		console.debug('[P2P] Received data', data);
 		if (data.type === 'initialization') {
 			if (this.connected) return;
 
@@ -136,6 +136,7 @@ export class Connection {
 	}
 	send(data: p2pPayload): void {
 		if (!this.connection) throw new Error('No connection');
+		console.debug('[P2P] Sending data', data);
 		this.connection.send(data);
 	}
 

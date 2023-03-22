@@ -98,7 +98,7 @@
 
 		intervals.push(
 			setInterval(() => {
-				if (myTank) {
+				if (myTank && gameState == 'playing') {
 					myTank.sendPos();
 				}
 			}, 250)
@@ -124,13 +124,18 @@
 			myTank = new Tank(cellWidth / 2, cellWidth / 2, cellWidth * 0.75, 'self');
 			hisTank = new Tank(100 - cellWidth / 2, 100 - cellWidth / 2, cellWidth * 0.75, 'other');
 
-			$currentConnection.send({
-				type: 'tank-trouble.reset',
-				grid: maze.grid,
-				me: myTank.initialPos,
-				you: hisTank.initialPos,
-			});
-			start();
+			const send = () => {
+				if (gameState == 'playing') return;
+				$currentConnection?.send({
+					type: 'tank-trouble.reset',
+					grid: maze?.grid,
+					me: myTank.initialPos,
+					you: hisTank.initialPos,
+				});
+
+				setTimeout(send, 1000);
+			};
+			setTimeout(send, 1000);
 		}
 
 		$currentConnection?.on('tank-trouble.reset', ({ grid, me: him, you: me }) => {
@@ -138,8 +143,10 @@
 			let cellWidth = maze.setupScene();
 			myTank = new Tank(me.x, me.y, cellWidth * 0.75, 'self');
 			hisTank = new Tank(him.x, him.y, cellWidth * 0.75, 'other');
+			$currentConnection?.send({
+				type: 'tank-trouble.ready',
+			});
 			start();
-			// sendPos();
 		});
 		$currentConnection?.on('tank-trouble.position', ({ pos, angle }) => {
 			if (!hisTank) return;
@@ -150,6 +157,9 @@
 		// get(currentConnection)?.send({ type: "tank-trouble.bullet", pos, dir, speed })
 		$currentConnection?.on('tank-trouble.bullet', ({ pos, dir, speed }) => {
 			new Bullet(Vector2.from(pos), Vector2.from(dir), speed, true);
+		});
+		$currentConnection?.on('tank-trouble.ready', () => {
+			start();
 		});
 	});
 
@@ -169,10 +179,13 @@
 <svelte:body on:click={handleClick} />
 
 <div id="background">
-	<div id="pixi-container" bind:this={container} tabindex="0" />
+	<div id="pixi-container" bind:this={container} tabindex="0" class={gameState} />
 </div>
 
 <style>
+	.waiting {
+		opacity: 0;
+	}
 	#background {
 		background: #181818;
 		display: grid;
