@@ -1,4 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+export function* shuffle<T>(arr: T[]): Generator<T, void, unknown> {
+	const array: T[] = structuredClone(arr);
+
+	while (array.length > 0) {
+		const index = Math.round(Math.random() * (array.length - 1))
+		yield array.splice(index, 1)[0];
+	}
+}
+
+
 export function clamp(input: number, min: number, max: number): number {
 	return input < min ? min : input > max ? max : input;
 }
@@ -24,20 +34,40 @@ export function randRange(a: number, b: number) {
 export class Vector2 {
 	x: number;
 	y: number;
+
+	static from(origin: unknown & { x: number, y: number }) {
+		return new Vector2(origin.x, origin.y);
+	}
+
 	constructor(x: number, y: number) {
 		this.x = x;
 		this.y = y;
+	}
+
+	setNorm(length: number) {
+		const factor = length / this.norm();
+		// this.scale(factor);
+		return this.scale(factor);
+	}
+
+	lerp(target: Vector2, n: number) {
+		const self = this.copy();
+		return self.add(self.to(target).scale(n));
 	}
 
 	dot(v: Vector2): number {
 		return this.x * v.x + this.y * v.y;
 	}
 	scale(k: number): Vector2 {
+		// this.x *= k;
+		// this.y *= k;
+		// return this;
 		return new Vector2(this.x * k, this.y * k);
 	}
 	add(v: Vector2) {
 		this.x += v.x;
 		this.y += v.y;
+		return this
 	}
 
 	norm() {

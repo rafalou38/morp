@@ -256,6 +256,11 @@
   resolved "https://registry.yarnpkg.com/@pixi/particle-container/-/particle-container-7.1.2.tgz#8aaa4790834fb72664259c488465ba56bb3ee2cf"
   integrity sha512-BaNT226SIs04qBwiUHanTYsWZjCFivW9jCZrV9+2N5BrNaCw4SWOfoHwy23AxaWZC2coU2AkM9MGoOeD75Qq9A==
 
+"@pixi/particle-emitter@^5.0.8":
+  version "5.0.8"
+  resolved "https://registry.yarnpkg.com/@pixi/particle-emitter/-/particle-emitter-5.0.8.tgz#616e6aca0c2e9592d0c3bca2b6a86626a8fa717c"
+  integrity sha512-OzuZ4+esQo+zJ0u3htuNHHMAE8Ixmr3nz3tEfrTGZHje1vnGyie3ANQj9F0V4OM47oi9jd70njVCmeb7bTkS9A==
+
 "@pixi/prepare@7.1.2":
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/@pixi/prepare/-/prepare-7.1.2.tgz#090e890c2a398199be22b122189e69b1e8d9e137"
@@ -273,6 +278,11 @@
   dependencies:
     "@pixi/constants" "7.1.2"
     "@types/css-font-loading-module" "^0.0.7"
+
+"@pixi/sound@^5.1.1":
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/@pixi/sound/-/sound-5.1.1.tgz#280720a455389eaf84e4772e1f7798c84691057f"
+  integrity sha512-OkOtlzNCDkPePLNo56R2gNKiXPDUpz2fTXVbn1DmScgWfBCHMski4a/6zf+dsDxI7q/tIEtlFKKcC9+r9otWOA==
 
 "@pixi/sprite-animated@7.1.2":
   version "7.1.2"
@@ -410,6 +420,11 @@
   version "7.0.9"
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.9.tgz#97edc9037ea0c38585320b28964dde3b39e4660d"
   integrity sha512-qcUXuemtEu+E5wZSJHNxUXeCZhAfXKQ41D+duX+VYPde7xyEVZci+/oXKJL13tnRs9lR2pr4fod59GT6/X1/yQ==
+
+"@types/matter-js@^0.18.2":
+  version "0.18.2"
+  resolved "https://registry.yarnpkg.com/@types/matter-js/-/matter-js-0.18.2.tgz#68a971386368882d3445de95dcf31289346dc22f"
+  integrity sha512-W9UC9DOPNBRTUocqqPZmzX3cbHmlZBI9jLn6SuxZz0n5QrPk382Ig3hbBWHqYU8TRUmTCJJhuanXeyMTavF7Mg==
 
 "@types/node@*":
   version "17.0.21"
@@ -1683,6 +1698,11 @@ magic-string@^0.26.7:
   integrity sha512-hX9XH3ziStPoPhJxLq1syWuZMxbDvGNbVchfrdCtanC7D13888bMFow61x8axrx+GfHLtVeAx2kxL7tTGRl+Ow==
   dependencies:
     sourcemap-codec "^1.4.8"
+
+matter-js@^0.19.0:
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/matter-js/-/matter-js-0.19.0.tgz#185e518146ae4fa20c33826ebc7e6e42685e3642"
+  integrity sha512-v2huwvQGOHTGOkMqtHd2hercCG3f6QAObTisPPHg8TZqq2lz7eIY/5i/5YUV8Ibf3mEioFEmwibcPUF2/fnKKQ==
 
 merge2@^1.3.0, merge2@^1.4.1:
   version "1.4.1"
