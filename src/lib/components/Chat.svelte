@@ -42,7 +42,7 @@
 	}
 </script>
 
-<div class="fixed h-full w-60 flex flex-col transition-all transform" class:shrunk={!open}>
+<div class="fixed z-20 h-full w-60 flex flex-col transition-all transform" class:shrunk={!open}>
 	<button
 		title="close"
 		class="absolute right-2 top-2 p-1 hover:bg-slate-700 rounded text-white delay-200 transition-transform"
