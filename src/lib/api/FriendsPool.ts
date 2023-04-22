@@ -8,8 +8,15 @@ import { get, writable } from 'svelte/store';
 import { Connection, currentConnection } from './connection';
 import { randomUsername } from './RadomWords';
 import { goto } from '$app/navigation';
+import type { DataConnection } from 'peerjs';
 
-interface User {
+
+
+/**
+ * MyUUID < OtherUUID === HOST
+ */
+
+export interface User {
 	uuid: string;
 	username: string | null;
 	friend?: boolean;
@@ -22,7 +29,9 @@ export const opponentInfo = writable<User | null>(null);
 
 export class FriendPool {
 	static peer: PeerCls;
+	static con: DataConnection;
 	private static loaded = false;
+	static successfulConnections: Map<string, DataConnection>;
 	static async Configure() {
 		if (this.loaded) return;
 		this.loaded = true;
@@ -41,10 +50,10 @@ export class FriendPool {
 
 		userInfo.subscribe(this.save.bind(this));
 		friendList.subscribe(this.save.bind(this));
-		const uuid = localStorage.getItem('FriendPool.uuid') || nanoid();
+		const myUuid = localStorage.getItem('FriendPool.uuid') || nanoid();
 		const username = localStorage.getItem('FriendPool.username');
 		userInfo.set({
-			uuid,
+			uuid: myUuid,
 			username,
 		});
 
@@ -57,47 +66,102 @@ export class FriendPool {
 					}));
 			});
 
-		if (uuid) {
-			console.log('Making peer', P2PId('friend', uuid));
+		if (myUuid) {
+			this.successfulConnections = new Map<string, DataConnection>();
+			const pendingConnections = new Map<string, DataConnection>();
 
-			const receiving = new Peer(P2PId('friend', uuid));
+			const receiving = new Peer(P2PId('friend', myUuid), {});
+
+			const connectionEstablished = (otherUUID: string, con: DataConnection) => {
+				console.log("[Friend] Connection established", otherUUID);
+
+				this.con = con;
+				pendingConnections.delete(otherUUID);
+				this.successfulConnections.set(otherUUID, con);
+
+				friendList.update((old) =>
+					old.map((f) => {
+						if (f.uuid == otherUUID)
+							return {
+								...f,
+								status: 'online',
+							};
+						else return f;
+					})
+				);
+
+				con.on('data', (data) => {
+					if (data.type === 'friend.askConnect') {
+						console.log(otherUUID, 'asked to connect');
+
+						const id = Math.random().toString(20);
+						con.send({
+							type: 'friend.okConnect',
+							id,
+						});
+						currentConnection.set(new Connection("", myUuid < otherUUID, undefined, undefined, con))
+						goto('/play');
+					} else if (data.type == 'friend.okConnect') {
+						currentConnection.set(new Connection("", myUuid < otherUUID, undefined, undefined, con))
+						goto('/play');
+					}
+				});
+
+
+			}
+
+			receiving.on('connection', (con) => {
+				const otherUUID = con.peer.split('-').at(-1);
+				if (otherUUID) connectionEstablished(otherUUID, con);
+				else console.error('Could not find id from peer');
+			});
 
 			const tryConnect = (friendUUID: string) => {
-				console.log('Fetching', friendUUID);
+				if (pendingConnections.has(friendUUID)) {
+					pendingConnections.delete(friendUUID);
+				}
+
+				console.log("[Friend] Try connecting", friendUUID);
+
 				const con = receiving.connect(P2PId('friend', friendUUID));
 
+				pendingConnections.set(friendUUID, con);
+
 				con.on('open', () => {
-					console.log('Success!', friendUUID);
-					friendList.update((old) =>
-						old.map((f) => {
-							if (f.uuid == friendUUID)
-								return {
-									...f,
-									status: 'online',
-								};
-							else return f;
-						})
-					);
+					connectionEstablished(friendUUID, con);
 				});
-				con.on('error', (e) => console.log('error', e.toString()));
+				con.on('error', console.error);
+
+				setTimeout(() => {
+					if (pendingConnections.has(friendUUID)) {
+
+						console.log("[Friend] Timed out, retry", friendUUID);
+						con.close();
+
+						tryConnect(friendUUID);
+					}
+
+				}, 2000)
 			};
 
 			receiving.on('open', () => {
-				console.log('connection opened');
-
 				for (const friend of get(friendList)) {
-					tryConnect(friend.uuid);
-				}
-			});
+					if (myUuid > friend.uuid) // Not host
+						tryConnect(friend.uuid);
+					else
+						console.log("[Friend]", "waiting for", friend.uuid);
 
-			receiving.on('error', (err) => {
-				const failedUUID = (err.toString() as string).match(/[a-zA-Z\d]{21}/)?.[0];
-				if (failedUUID) {
-					tryConnect(failedUUID);
 				}
 			});
 		}
 	}
+	static connect(friend: User) {
+		const con = this.successfulConnections.get(friend.uuid);
+		if (!con) return console.log('NO CON');
+		con.send({ type: 'friend.askConnect' });
+	}
+
+	// For adding friends
 	static setupListeners(con: Connection) {
 		con.on('social.userInfo', ({ username, uuid }) => {
 			console.log('[Friend] Received opponent info');
@@ -109,6 +173,9 @@ export class FriendPool {
 		});
 		con.on('social.validateFriend', () => {
 			this.addFriend();
+		});
+		con.on('social.removeFriend', () => {
+			this.removeFriend();
 		});
 
 		const sendData = () => {
@@ -138,6 +205,15 @@ export class FriendPool {
 		localStorage.setItem('FriendPool.friends', JSON.stringify(get(friendList)));
 	}
 
+
+	static askRemoveFriend() {
+		const con = get(currentConnection);
+		if (!con) return goto('/');
+
+		this.removeFriend();
+		con.send({ type: 'social.removeFriend' });
+	}
+
 	static askFriendship() {
 		const con = get(currentConnection);
 		if (!con) return goto('/');
@@ -152,6 +228,13 @@ export class FriendPool {
 		con.send({ type: 'social.validateFriend' });
 	}
 
+	static removeFriend() {
+		const opponent = get(opponentInfo);
+		if (!opponent) throw new Error("Remove friend, no opponent");
+		opponent.friend = false;
+		opponentInfo.set(opponent);
+		friendList.update(old => old.filter(e => e.uuid != opponent.uuid))
+	}
 	private static addFriend() {
 		const other = get(opponentInfo);
 		if (other) {

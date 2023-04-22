@@ -17,7 +17,6 @@ export class Connection {
 	private initInterval: NodeJS.Timeout | null = null;
 	private cb: (conn: PeerCls.DataConnection) => void;
 	private errCb: () => void;
-	// private listeners: { [key: string]: (data: p2pPayload) => void } = {};
 	private listeners: Map<string, (data: p2pPayload) => void> = new Map();
 
 	static async isValid(code: string): Promise<boolean> {
@@ -28,11 +27,18 @@ export class Connection {
 		code: string,
 		host: boolean,
 		connectionCB?: (conn: PeerCls.DataConnection) => void,
-		errCD?: () => void
+		errCD?: () => void,
+		con?: PeerCls.DataConnection
 	) {
 		if (!Peer) throw new Error('PeerJs not loaded');
 
 		this.selfHosted = host;
+		if (con) {
+			this.connection = con;
+			this.connection.on('data', this.handleData.bind(this));
+			this.success()
+			return;
+		}
 		this.code = code;
 		if (connectionCB) this.cb = connectionCB;
 		if (errCD) this.errCb = errCD;
@@ -134,7 +140,7 @@ export class Connection {
 		FriendPool.setupListeners(this);
 
 		this.connected = true;
-		this.cb(this.connection);
+		this.cb?.(this.connection);
 	}
 	on(event: string, cb: (data: p2pPayload) => void): void {
 		this.listeners.set(event, cb);

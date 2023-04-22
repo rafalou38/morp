@@ -3,6 +3,7 @@
 	import { FriendPool, opponentInfo, userInfo } from '$lib/api/FriendsPool';
 	import { randomUsername } from '$lib/api/RadomWords';
 	import Icon from '@iconify/svelte';
+	import FriendList from './start/FriendList.svelte';
 
 	const focus = (e: HTMLInputElement) => e.focus();
 
@@ -43,7 +44,14 @@
 		{/if}
 		<div class="cell">
 			{#if $opponentInfo}
-				<div class="username" title="Add friend" on:click={FriendPool.askFriendship}>
+				<div
+					class="username"
+					title="Add friend"
+					on:click={() => {
+						if ($opponentInfo?.friend) FriendPool.askRemoveFriend();
+						else FriendPool.askFriendship();
+					}}
+				>
 					<p class="capsize-dosis-12" class:underline={$opponentInfo.friend}>
 						{$opponentInfo.username || 'Loading'}
 					</p>

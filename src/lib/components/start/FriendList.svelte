@@ -1,8 +1,12 @@
-<script>
-	import { friendList, FriendPool } from '$lib/api/FriendsPool';
+<script lang="ts">
+	import { friendList, FriendPool, type User } from '$lib/api/FriendsPool';
 	import Icon from '@iconify/svelte';
 
 	FriendPool.Configure();
+
+	function connect(friend: User) {
+		FriendPool.connect(friend);
+	}
 </script>
 
 <div class="wrapper">
@@ -14,7 +18,7 @@
 
 				<td>
 					{#if friend.status == 'online'}
-						<button>
+						<button on:click={() => connect(friend)}>
 							Connect
 							<Icon class="icon" icon="fluent:plug-connected-add-20-filled" title="connect" />
 						</button>
