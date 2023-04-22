@@ -33,6 +33,7 @@
 	import { PeerLoaded } from '$lib/api/peerjs';
 	import CodeBoard from '$lib/components/start/CodeBoard.svelte';
 	import { browser } from '$app/env';
+	import { FriendPool } from '$lib/api/FriendsPool';
 
 	export let gameCode: string;
 	export let hosted: boolean;
@@ -47,6 +48,7 @@
 				hosted,
 				() => {
 					connected = true;
+					FriendPool.stop();
 					// setTimeout(() => {
 					goto('/play');
 					// }, 100);

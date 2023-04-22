@@ -32,9 +32,14 @@ export class FriendPool {
 	static con: DataConnection;
 	private static loaded = false;
 	static successfulConnections: Map<string, DataConnection>;
+	static stopped = false;
+	static stop() {
+		this.stopped = true;
+	}
 	static async Configure() {
 		if (this.loaded) return;
 		this.loaded = true;
+		this.stopped = false;
 		await PeerLoaded;
 		if (!Peer) throw new Error('PeerJs not loaded');
 
@@ -91,6 +96,7 @@ export class FriendPool {
 				);
 
 				con.on('data', (data) => {
+					if (this.stopped) return;
 					if (data.type === 'friend.askConnect') {
 						console.log(otherUUID, 'asked to connect');
 
@@ -111,6 +117,7 @@ export class FriendPool {
 			}
 
 			receiving.on('connection', (con) => {
+				if (this.stopped) return;
 				const otherUUID = con.peer.split('-').at(-1);
 				if (otherUUID) connectionEstablished(otherUUID, con);
 				else console.error('Could not find id from peer');
@@ -128,11 +135,13 @@ export class FriendPool {
 				pendingConnections.set(friendUUID, con);
 
 				con.on('open', () => {
+					if (this.stopped) return;
 					connectionEstablished(friendUUID, con);
 				});
 				con.on('error', console.error);
 
 				setTimeout(() => {
+					if (this.stopped) return;
 					if (pendingConnections.has(friendUUID)) {
 
 						console.log("[Friend] Timed out, retry", friendUUID);
