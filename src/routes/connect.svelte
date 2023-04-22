@@ -7,8 +7,8 @@
 				status: 200,
 				props: {
 					gameCode: '',
-					hosted: false
-				}
+					hosted: false,
+				},
 			};
 		}
 		const gameCode = url.searchParams.get('code');
@@ -20,8 +20,8 @@
 			status: 200,
 			props: {
 				gameCode,
-				hosted
-			}
+				hosted,
+			},
 		};
 	};
 </script>
@@ -33,6 +33,7 @@
 	import { PeerLoaded } from '$lib/api/peerjs';
 	import CodeBoard from '$lib/components/start/CodeBoard.svelte';
 	import { browser } from '$app/env';
+	import { FriendPool } from '$lib/api/FriendsPool';
 
 	export let gameCode: string;
 	export let hosted: boolean;
@@ -47,9 +48,10 @@
 				hosted,
 				() => {
 					connected = true;
-					setTimeout(() => {
-						goto('/play');
-					}, 500);
+					FriendPool.stop();
+					// setTimeout(() => {
+					goto('/play');
+					// }, 100);
 				},
 				() => {
 					error = 'Connection failed';

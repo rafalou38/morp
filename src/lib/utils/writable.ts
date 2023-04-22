@@ -6,7 +6,7 @@ export type WritableC<T> = Writable<T> & { get: () => T };
 export function writableC<T>(value?: T, start?: StartStopNotifier<T>): WritableC<T> {
 	const inner = base_wt(value, start);
 	const cache = {
-		value
+		value,
 	};
 	const set = (n_value: T) => {
 		inner.set(n_value);
@@ -19,6 +19,6 @@ export function writableC<T>(value?: T, start?: StartStopNotifier<T>): WritableC
 			const n_val = updater(cache.value);
 			set(n_val);
 		},
-		get: () => cache.value
+		get: () => cache.value,
 	};
 }
